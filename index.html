@@ -1,0 +1,1588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#ff4d00">
+<link rel="manifest" href="manifest.json">
+<title>HYROX Cairo</title>
+<style>
+:root {
+  --orange: #ff4d00;
+  --orange-glow: #ff6a2a;
+  --dark: #0a0a0a;
+  --card: #141414;
+  --card2: #1a1a1a;
+  --card3: #222;
+  --text: #f0f0f0;
+  --text2: #999;
+  --green: #00c853;
+  --blue: #2196f3;
+  --yellow: #ffc107;
+  --red: #ff3d00;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+  background: var(--dark);
+  color: var(--text);
+  min-height: 100dvh;
+  overflow-x: hidden;
+  padding-top: var(--safe-top);
+  padding-bottom: calc(70px + var(--safe-bottom));
+}
+
+/* ─── NAV BAR ─── */
+.nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: rgba(14,14,14,0.95);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  display: flex; justify-content: space-around;
+  padding: 8px 0 calc(8px + var(--safe-bottom));
+  border-top: 1px solid #222;
+  z-index: 100;
+}
+.nav-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  background: none; border: none; color: var(--text2);
+  font-size: 10px; font-weight: 600; padding: 4px 12px;
+  cursor: pointer; transition: color 0.2s;
+}
+.nav-btn.active { color: var(--orange); }
+.nav-btn svg { width: 24px; height: 24px; }
+
+/* ─── PAGES ─── */
+.page { display: none; padding: 16px; padding-bottom: 20px; }
+.page.active { display: block; animation: fadeIn 0.3s; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ─── HERO / TODAY ─── */
+.hero {
+  background: linear-gradient(135deg, #1a0800 0%, #0a0a0a 50%, #001a0a 100%);
+  border-radius: 20px; padding: 24px; margin-bottom: 16px;
+  border: 1px solid #222;
+  position: relative; overflow: hidden;
+}
+.hero::before {
+  content: ''; position: absolute; top: -50%; right: -30%; width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(255,77,0,0.15) 0%, transparent 70%);
+}
+.hero-label { font-size: 11px; font-weight: 700; color: var(--orange); letter-spacing: 2px; text-transform: uppercase; }
+.hero-title { font-size: 28px; font-weight: 900; margin: 8px 0 4px; line-height: 1.1; }
+.hero-sub { font-size: 14px; color: var(--text2); }
+.countdown-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 16px;
+}
+.countdown-item {
+  background: var(--card); border-radius: 12px; padding: 12px 8px; text-align: center;
+  border: 1px solid #222;
+}
+.countdown-num { font-size: 24px; font-weight: 900; color: var(--orange); }
+.countdown-label { font-size: 10px; color: var(--text2); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+
+.today-card {
+  background: var(--card); border-radius: 16px; padding: 20px; margin-bottom: 12px;
+  border: 1px solid #222; cursor: pointer; transition: border-color 0.2s;
+}
+.today-card:active { border-color: var(--orange); }
+.today-phase { font-size: 11px; font-weight: 700; color: var(--orange); letter-spacing: 1.5px; text-transform: uppercase; }
+.today-day { font-size: 22px; font-weight: 800; margin: 6px 0 4px; }
+.today-type { font-size: 14px; color: var(--text2); margin-bottom: 12px; }
+.today-preview { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+.badge {
+  display: inline-block; padding: 4px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.badge-rest { background: rgba(33,150,243,0.15); color: var(--blue); }
+.badge-strength { background: rgba(255,77,0,0.15); color: var(--orange); }
+.badge-run { background: rgba(0,200,83,0.15); color: var(--green); }
+.badge-hybrid { background: rgba(255,193,7,0.15); color: var(--yellow); }
+.badge-mobility { background: rgba(156,39,176,0.15); color: #ce93d8; }
+.badge-sim { background: rgba(255,61,0,0.15); color: var(--red); }
+.badge-race { background: rgba(255,77,0,0.3); color: #fff; border: 1px solid var(--orange); }
+
+/* ─── MOTIVATION ─── */
+.motivation-card {
+  background: linear-gradient(135deg, rgba(255,77,0,0.08) 0%, var(--card) 100%);
+  border-radius: 16px; padding: 20px; margin-bottom: 16px;
+  border: 1px solid rgba(255,77,0,0.2);
+}
+.motivation-quote { font-size: 16px; font-weight: 600; font-style: italic; line-height: 1.5; margin-bottom: 8px; }
+.motivation-attr { font-size: 12px; color: var(--text2); }
+
+/* ─── WORKOUT DETAIL ─── */
+.workout-detail { padding: 16px; }
+.workout-header {
+  background: var(--card); border-radius: 16px; padding: 20px; margin-bottom: 16px;
+  border: 1px solid #222;
+}
+.workout-block {
+  background: var(--card); border-radius: 14px; padding: 16px; margin-bottom: 12px;
+  border: 1px solid #222;
+}
+.workout-block-title {
+  font-size: 13px; font-weight: 700; color: var(--orange); letter-spacing: 1px;
+  text-transform: uppercase; margin-bottom: 10px;
+}
+.exercise {
+  padding: 10px 0; border-bottom: 1px solid #1a1a1a;
+  font-size: 14px; line-height: 1.6; color: var(--text);
+}
+.exercise:last-child { border-bottom: none; }
+.exercise-rest { font-size: 12px; color: var(--text2); margin-top: 2px; }
+.exercise-note { font-size: 12px; color: var(--orange); margin-top: 2px; font-style: italic; }
+
+.complete-btn {
+  display: block; width: 100%; padding: 16px;
+  background: var(--orange); color: #fff; border: none; border-radius: 14px;
+  font-size: 16px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+  cursor: pointer; margin-top: 16px; transition: all 0.2s;
+}
+.complete-btn:active { transform: scale(0.97); }
+.complete-btn.done { background: var(--green); }
+
+.back-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: none; border: none; color: var(--orange);
+  font-size: 14px; font-weight: 600; cursor: pointer; padding: 8px 0; margin-bottom: 12px;
+}
+
+/* ─── WEEK VIEW ─── */
+.section-title { font-size: 20px; font-weight: 800; margin: 20px 0 12px; }
+.phase-selector {
+  display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 12px;
+  -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+.phase-selector::-webkit-scrollbar { display: none; }
+.phase-pill {
+  flex-shrink: 0; padding: 8px 16px; border-radius: 20px;
+  background: var(--card); border: 1px solid #333; color: var(--text2);
+  font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap;
+  transition: all 0.2s;
+}
+.phase-pill.active { background: var(--orange); color: #fff; border-color: var(--orange); }
+
+.week-card {
+  background: var(--card); border-radius: 14px; padding: 16px; margin-bottom: 10px;
+  border: 1px solid #222; cursor: pointer; transition: border-color 0.2s;
+}
+.week-card:active { border-color: var(--orange); }
+.week-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.week-dates { font-size: 12px; color: var(--text2); margin-bottom: 10px; }
+.week-days { display: flex; gap: 4px; }
+.week-day-dot {
+  width: 32px; height: 32px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; background: var(--card2);
+  border: 1px solid #333;
+}
+.week-day-dot.completed { background: var(--green); color: #fff; border-color: var(--green); }
+.week-day-dot.today { border-color: var(--orange); color: var(--orange); }
+
+.day-row {
+  display: flex; align-items: center; padding: 14px 16px;
+  background: var(--card); border-radius: 12px; margin-bottom: 8px;
+  border: 1px solid #222; cursor: pointer; transition: border-color 0.2s; gap: 12px;
+}
+.day-row:active { border-color: var(--orange); }
+.day-num {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 800; background: var(--card3);
+  flex-shrink: 0;
+}
+.day-num.completed { background: var(--green); color: #fff; }
+.day-info { flex: 1; min-width: 0; }
+.day-name { font-size: 14px; font-weight: 700; }
+.day-desc { font-size: 12px; color: var(--text2); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.day-check { font-size: 18px; color: var(--green); flex-shrink: 0; }
+
+/* ─── GUIDE SECTIONS ─── */
+.guide-card {
+  background: var(--card); border-radius: 14px; padding: 16px; margin-bottom: 10px;
+  border: 1px solid #222; cursor: pointer; transition: border-color 0.2s;
+}
+.guide-card:active { border-color: var(--orange); }
+.guide-card-icon { font-size: 28px; margin-bottom: 8px; }
+.guide-card-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.guide-card-desc { font-size: 12px; color: var(--text2); }
+
+.guide-content {
+  background: var(--card); border-radius: 14px; padding: 20px; margin-bottom: 12px;
+  border: 1px solid #222;
+}
+.guide-content h3 {
+  font-size: 16px; font-weight: 800; color: var(--orange); margin: 16px 0 8px;
+}
+.guide-content h3:first-child { margin-top: 0; }
+.guide-content p, .guide-content li {
+  font-size: 14px; line-height: 1.7; color: var(--text); margin-bottom: 8px;
+}
+.guide-content ul { padding-left: 20px; }
+.guide-content .tip {
+  background: rgba(255,77,0,0.08); border-left: 3px solid var(--orange);
+  padding: 12px 14px; border-radius: 0 10px 10px 0; margin: 12px 0;
+  font-size: 13px; line-height: 1.6;
+}
+.guide-content table {
+  width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px;
+}
+.guide-content th {
+  background: var(--card3); padding: 8px 10px; text-align: left;
+  font-weight: 700; color: var(--orange); border-bottom: 1px solid #333;
+}
+.guide-content td {
+  padding: 8px 10px; border-bottom: 1px solid #1a1a1a; color: var(--text);
+}
+
+/* ─── PROGRESS ─── */
+.progress-ring {
+  display: flex; flex-direction: column; align-items: center; margin: 20px 0;
+}
+.progress-circle {
+  width: 160px; height: 160px; position: relative;
+}
+.progress-circle svg { transform: rotate(-90deg); }
+.progress-circle .bg { stroke: #222; }
+.progress-circle .fill { stroke: var(--orange); stroke-linecap: round; transition: stroke-dashoffset 0.5s; }
+.progress-pct {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  font-size: 36px; font-weight: 900; color: var(--orange);
+}
+.progress-label { font-size: 14px; color: var(--text2); margin-top: 8px; font-weight: 600; }
+
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0; }
+.stat-card {
+  background: var(--card); border-radius: 14px; padding: 16px; text-align: center;
+  border: 1px solid #222;
+}
+.stat-num { font-size: 28px; font-weight: 900; color: var(--orange); }
+.stat-label { font-size: 11px; color: var(--text2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+
+.benchmark-card {
+  background: var(--card); border-radius: 14px; padding: 16px; margin-bottom: 10px;
+  border: 1px solid #222;
+}
+.benchmark-title { font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+.benchmark-input {
+  width: 100%; padding: 10px 14px; background: var(--card3); border: 1px solid #333;
+  border-radius: 10px; color: var(--text); font-size: 14px; font-family: inherit;
+}
+.benchmark-input:focus { outline: none; border-color: var(--orange); }
+.benchmark-entries { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.benchmark-tag {
+  padding: 4px 10px; background: rgba(255,77,0,0.1); border-radius: 8px;
+  font-size: 12px; color: var(--orange); font-weight: 600;
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════ TODAY PAGE ═══════ -->
+<div id="page-today" class="page active">
+  <div class="hero">
+    <div class="hero-label">HYROX Cairo 2026</div>
+    <div class="hero-title" id="hero-greeting"></div>
+    <div class="hero-sub" id="hero-date"></div>
+    <div class="countdown-grid" id="countdown"></div>
+  </div>
+  <div id="motivation-slot"></div>
+  <div id="today-workout"></div>
+</div>
+
+<!-- ═══════ PROGRAM PAGE ═══════ -->
+<div id="page-program" class="page">
+  <div class="section-title">Program</div>
+  <div class="phase-selector" id="phase-selector"></div>
+  <div id="program-content"></div>
+</div>
+
+<!-- ═══════ GUIDE PAGE ═══════ -->
+<div id="page-guide" class="page">
+  <div class="section-title">Guide</div>
+  <div id="guide-list"></div>
+  <div id="guide-detail" style="display:none"></div>
+</div>
+
+<!-- ═══════ PROGRESS PAGE ═══════ -->
+<div id="page-progress" class="page">
+  <div class="section-title">Progress</div>
+  <div id="progress-content"></div>
+</div>
+
+<!-- ═══════ WORKOUT DETAIL OVERLAY ═══════ -->
+<div id="workout-overlay" style="display:none" class="page">
+  <div id="workout-detail-content"></div>
+</div>
+
+<!-- ═══════ NAV ═══════ -->
+<nav class="nav">
+  <button class="nav-btn active" data-page="today">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    Today
+  </button>
+  <button class="nav-btn" data-page="program">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Program
+  </button>
+  <button class="nav-btn" data-page="guide">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+    Guide
+  </button>
+  <button class="nav-btn" data-page="progress">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+    Progress
+  </button>
+</nav>
+
+<script>
+// ═══════════════════════════════════════════
+//  DATA: Full 21-week program
+// ═══════════════════════════════════════════
+const RACE_DATE = new Date(2026, 10, 14); // Nov 14 2026
+const PROGRAM_START = new Date(2026, 5, 22); // Jun 22 2026
+
+const PHASES = [
+  { id: 1, name: "Base & Foundations", weeks: "1–6", dates: "Jun 22 – Aug 2", color: "#2196f3" },
+  { id: 2, name: "Strength & Engine", weeks: "7–12", dates: "Aug 3 – Sep 13", color: "#ff4d00" },
+  { id: 3, name: "Race Prep", weeks: "13–18", dates: "Sep 14 – Oct 25", color: "#ffc107" },
+  { id: 4, name: "Peak & Race", weeks: "19–21", dates: "Oct 26 – Nov 15", color: "#ff3d00" }
+];
+
+const MOTIVATIONAL_QUOTES = [
+  { q: "The race is won in training. Every rep today is a second saved on race day.", a: "HYROX Mindset" },
+  { q: "You don't rise to the level of competition. You fall to the level of your preparation.", a: "Archilochus" },
+  { q: "Discipline is choosing between what you want now and what you want most.", a: "Abraham Lincoln" },
+  { q: "The sled doesn't care how tired you are. Train so your legs don't care either.", a: "HYROX Mentality" },
+  { q: "Compromised running is where races are won or lost. Embrace the discomfort.", a: "HYROX Training" },
+  { q: "8 stations. 8 kilometers. 1 finish line. You're building something unstoppable.", a: "HYROX Cairo" },
+  { q: "Trust the process. Trust the taper. Race smart on the day.", a: "Your Program" },
+  { q: "Every wall ball, every sled push, every burpee — they're all deposits in your race-day account.", a: "HYROX Prep" },
+  { q: "The person who shows up consistently beats the person who shows up intensely.", a: "Training Wisdom" },
+  { q: "Cairo is waiting. The first-ever HYROX in Egypt, and you'll be ready.", a: "HYROX Cairo 2026" },
+  { q: "Pain is temporary. Your HYROX time is forever.", a: "Race Day Truth" },
+  { q: "You're not just training your body. You're training your mind to keep moving when everything says stop.", a: "Mental Toughness" },
+];
+
+// Helper to generate dates
+function weekStartDate(weekNum) {
+  const d = new Date(PROGRAM_START);
+  d.setDate(d.getDate() + (weekNum - 1) * 7);
+  return d;
+}
+function dayDate(weekNum, dayIdx) {
+  const d = weekStartDate(weekNum);
+  d.setDate(d.getDate() + dayIdx);
+  return d;
+}
+function fmtDate(d) {
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+// ─── FULL WORKOUT DATA ───
+// Each week: array of 7 days [Mon..Sun]
+// Each day: { title, type, badge, blocks: [{ name, exercises: [string] }] }
+
+function generateAllWeeks() {
+  const weeks = [];
+
+  // ══════ PHASE 1: Weeks 1-6 ══════
+  // Week 1
+  weeks.push([
+    { title: "Strength A — Lower Body + Sled Push Skill", type: "strength", badge: "strength", blocks: [
+      { name: "Warm-Up", exercises: ["5-8min Daily Short Warm-Up (see Mobility section)"] },
+      { name: "Strength", exercises: [
+        "Back Squat (or Goblet Squat) — 4×8 @ RPE6 | Rest 90-120s",
+        "Romanian Deadlift — 3×8 @ RPE6-7, controlled 3s eccentric | Rest 90s",
+        "Walking Lunges (BW → light DB) — 3×12/leg | Rest 60s"
+      ]},
+      { name: "Station Skill", exercises: [
+        "Sled Push technique: 5×20m @ ~50% race weight | Rest 90s | Focus: low shin angle, short choppy steps, arms locked"
+      ]},
+      { name: "Core", exercises: ["Weighted Plank or Pallof Press — 3×30-40s/side | Rest 45-60s"] }
+    ]},
+    { title: "Running — Threshold", type: "run", badge: "run", blocks: [
+      { name: "Warm-Up", exercises: ["10min easy jog + dynamic mobility"] },
+      { name: "Main Set", exercises: ["3×5min @ Threshold, 3min jog recovery"] },
+      { name: "Cool-Down", exercises: ["5-10min easy jog/walk"] }
+    ]},
+    { title: "Strength B — Upper/Pull + SkiErg Skill", type: "strength", badge: "strength", blocks: [
+      { name: "Warm-Up", exercises: ["5-8min Daily Short Warm-Up"] },
+      { name: "Strength", exercises: [
+        "Bent-Over Row or Pull-Up — 4×8 @ RPE6-7 | Rest 90s",
+        "DB/BB Shoulder Press — 3×10 @ RPE6-7 | Rest 90s",
+        "Dead Hang / Grip Hold — 3×max (cap 45s) | Rest 60s"
+      ]},
+      { name: "Station Skill", exercises: [
+        "SkiErg technique: 4×500m @ controlled/Threshold, hip-hinge drive focus | Rest 90s",
+        "Farmers Carry — 4×40m @ ~60% race weight/hand | Rest 60-75s | Tall posture, relaxed grip"
+      ]}
+    ]},
+    { title: "Easy/Long Run + Mobility", type: "run", badge: "run", blocks: [
+      { name: "Run", exercises: ["Easy continuous run: 35min Z2"] },
+      { name: "Mobility", exercises: ["Full Mobility Flow, 20-30min"] }
+    ]},
+    { title: "Hybrid Circuit", type: "hybrid", badge: "hybrid", blocks: [
+      { name: "Warm-Up", exercises: ["10min easy movement + dynamic mobility"] },
+      { name: "Main Set", exercises: ["4 rounds: 250m SkiErg (smooth) + 10 Burpee Broad Jumps + 250m Row | Rest 90s | Moderate effort"] },
+      { name: "Cool-Down", exercises: ["5min easy + static stretch"] }
+    ]},
+    { title: "Mobility & Recovery", type: "mobility", badge: "mobility", blocks: [
+      { name: "Session", exercises: ["Full Mobility Flow, 30-40min", "Optional: 20-30min easy walk"] }
+    ]},
+    { title: "Rest Day", type: "rest", badge: "rest", blocks: [
+      { name: "Session", exercises: ["Full rest. No structured training. Light walking/stretching only if desired."] }
+    ]}
+  ]);
+
+  // Week 2
+  weeks.push([
+    { title: "Strength A — Lower Body + Sled Push Skill", type: "strength", badge: "strength", blocks: [
+      { name: "Warm-Up", exercises: ["5-8min Daily Short Warm-Up"] },
+      { name: "Strength", exercises: [
+        "Back Squat (or Goblet Squat) — 4×8 @ RPE6 | Rest 90-120s",
+        "Romanian Deadlift — 3×8 @ RPE6-7, controlled 3s eccentric | Rest 90s",
+        "Walking Lunges (BW → light DB) — 3×12/leg | Rest 60s"
+      ]},
+      { name: "Station Skill", exercises: ["Sled Push technique: 5×20m @ ~55% race weight | Rest 90s"] },
+      { name: "Core", exercises: ["Weighted Plank or Pallof Press — 3×30-40s/side | Rest 45-60s"] }
+    ]},
+    { title: "Running — Threshold", type: "run", badge: "run", blocks: [
+      { name: "Warm-Up", exercises: ["10min easy jog + dynamic mobility"] },
+      { name: "Main Set", exercises: ["4×5min @ Threshold, 2:30 jog recovery"] },
+      { name: "Cool-Down", exercises: ["5-10min easy jog/walk"] }
+    ]},
+    { title: "Strength B — Upper/Pull + SkiErg Skill", type: "strength", badge: "strength", blocks: [
+      { name: "Warm-Up", exercises: ["5-8min Daily Short Warm-Up"] },
+      { name: "Strength", exercises: [
+        "Bent-Over Row or Pull-Up — 4×8 @ RPE6-7 | Rest 90s",
+        "DB/BB Shoulder Press — 3×10 @ RPE6-7 | Rest 90s",
+        "Dead Hang / Grip Hold — 3×max (cap 45s) | Rest 60s"
+      ]},
+      { name: "Station Skill", exercises: [
+        "SkiErg: 4×500m @ controlled/Threshold | Rest 90s",
+        "Farmers Carry — 4×40m @ ~65% race weight/hand | Rest 60-75s"
+      ]}
+    ]},
+    { title: "Easy/Long Run + Mobility", type: "run", badge: "run", blocks: [
+      { name: "Run", exercises: ["Easy continuous run: 38min Z2"] },
+      { name: "Mobility", exercises: ["Full Mobility Flow, 20-30min"] }
+    ]},
+    { title: "Hybrid Circuit", type: "hybrid", badge: "hybrid", blocks: [
+      { name: "Warm-Up", exercises: ["10min easy movement + dynamic mobility"] },
+      { name: "Main Set", exercises: ["EMOM 12min: odd min 10 Wall Balls (light/moderate), even min 200m Row. Technique focus."] },
+      { name: "Cool-Down", exercises: ["5min easy + static stretch"] }
+    ]},
+    { title: "Mobility & Recovery", type: "mobility", badge: "mobility", blocks: [
+      { name: "Session", exercises: ["Full Mobility Flow, 30-40min", "Optional: 20-30min easy walk"] }
+    ]},
+    { title: "Rest Day", type: "rest", badge: "rest", blocks: [
+      { name: "Session", exercises: ["Full rest. No structured training."] }
+    ]}
+  ]);
+
+  // Week 3
+  weeks.push([
+    { title: "Strength A — Lower Body + Sled Push Skill", type: "strength", badge: "strength", blocks: [
+      { name: "Warm-Up", exercises: ["5-8min Daily Short Warm-Up"] },
+      { name: "Strength", exercises: [
+        "Back Squat (or Goblet Squat) — 4×7 @ RPE7 | Rest 90-120s",
+        "Romanian Deadlift — 3×8 @ RPE6-7, controlled 3s eccentric | Rest 90s",
+        "Walking Lunges (BW → light DB) — 3×12/leg | Rest 60s"
+      ]},
+      { name: "Station Skill", exercises: ["Sled Push technique: 5×20m @ ~60% race weight | Rest 90s"] },
+      { name: "Core", exercises: ["Weighted Plank or Pallof Press — 3×30-40s/side | Rest 45-60s"] }
+    ]},
+    { title: "Running — Threshold", type: "run", badge: "run", blocks: [
+      { name: "Warm-Up", exercises: ["10min easy jog + dynamic mobility"] },
+      { name: "Main Set", exercises: ["4×6min @ Threshold, 2min jog recovery"] },
+      { name: "Cool-Down", exercises: ["5-10min easy jog/walk"] }
+    ]},
+    { title: "Strength B — Upper/Pull + SkiErg Skill", type: "strength", badge: "strength", blocks: [
+      { name: "Warm-Up", exercises: ["5-8min Daily Short Warm-Up"] },
+      { name: "Strength", exercises: [
+        "Bent-Over Row or Pull-Up — 4×7 @ RPE6-7 | Rest 90s",
+        "DB/BB Shoulder Press — 3×10 @ RPE6-7 | Rest 90s",
+        "Dead Hang / Grip Hold — 3×max (cap 45s) | Rest 60s"
+      ]},
+      { name: "Station Skill", exercises: [
+        "SkiErg: 4×500m @ controlled/Threshold | Rest 90s",
+        "Farmers Carry — 4×40m @ ~70% race weight/hand | Rest 60-75s"
+      ]}
+    ]},
+    { title: "Easy/Long Run + Mobility", type: "run", badge: "run", blocks: [
+      { name: "Run", exercises: ["Easy continuous run: 42min Z2"] },
+      { name: "Mobility", exercises: ["Full Mobility Flow, 20-30min"] }
+    ]},
+    { title: "Hybrid Circuit", type: "hybrid", badge: "hybrid", blocks: [
+      { name: "Warm-Up", exercises: ["10min easy movement + dynamic mobility"] },
+      { name: "Main Set", exercises: ["4 rounds: 200m SkiErg + 15m Sandbag Lunges (light) + 200m Row | Rest 90s | Moderate effort"] },
+      { name: "Cool-Down", exercises: ["5min easy + static stretch"] }
+    ]},
+    { title: "Mobility & Recovery", type: "mobility", badge: "mobility", blocks: [
+      { name: "Session", exercises: ["Full Mobility Flow, 30-40min", "Optional: 20-30min easy walk"] }
+    ]},
+    { title: "Rest Day", type: "rest", badge: "rest", blocks: [
+      { name: "Session", exercises: ["Full rest. No structured training."] }
+    ]}
+  ]);
+
+  // Week 4
+  weeks.push([
+    { title: "Strength A — Lower Body + Sled Push Skill", type: "strength", badge: "strength", blocks: [
+      { name: "Warm-Up", exercises: ["5-8min Daily Short Warm-Up"] },
+      { name: "Strength", exercises: [
+        "Back Squat (or Goblet Squat) — 4×7 @ RPE7 | Rest 90-120s",
+        "Romanian Deadlift — 3×8 @ RPE6-7, controlled 3s eccentric | Rest 90s",
+        "Walking Lunges (BW → light DB) — 3×12/leg | Rest 60s"
+      ]},
+      { name: "Station Skill", exercises: ["Sled Push technique: 5×20m @ ~60% race weight | Rest 90s"] },
+      { name: "Core", exercises: ["Weighted Plank or Pallof Press — 3×30-40s/side | Rest 45-60s"] }
+    ]},
+    { title: "Running — Threshold", type: "run", badge: "run", blocks: [
+      { name: "Warm-Up", exercises: ["10min easy jog + dynamic mobility"] },
+      { name: "Main Set", exercises: ["4×6min @ Threshold, 2min jog recovery"] },
+      { name: "Cool-Down", exercises: ["5-10min easy jog/walk"] }
+    ]},
+    { title: "Strength B — Upper/Pull + SkiErg Skill", type: "strength", badge: "strength", blocks: [
+      { name: "Warm-Up", exercises: ["5-8min Daily Short Warm-Up"] },
+      { name: "Strength", exercises: [
+        "Bent-Over Row or Pull-Up — 4×7 @ RPE6-7 | Rest 90s",
+        "DB/BB Shoulder Press — 3×10 @ RPE6-7 | Rest 90s",
+        "Dead Hang / Grip Hold — 3×max (cap 45s) | Rest 60s"
+      ]},
+      { name: "Station Skill", exercises: [
+        "SkiErg: 4×500m @ controlled/Threshold | Rest 90s",
+        "Farmers Carry — 4×40m @ ~75% race weight/hand | Rest 60-75s"
+      ]}
+    ]},
+    { title: "Easy/Long Run + Mobility", type: "run", badge: "run", blocks: [
+      { name: "Run", exercises: ["Easy continuous run: 45min Z2"] },
+      { name: "Mobility", exercises: ["Full Mobility Flow, 20-30min"] }
+    ]},
+    { title: "Hybrid Circuit", type: "hybrid", badge: "hybrid", blocks: [
+      { name: "Warm-Up", exercises: ["10min easy movement + dynamic mobility"] },
+      { name: "Main Set", exercises: ["5 rounds: 250m Row + 8 Burpee Broad Jumps + 12 Wall Balls (light) | Rest 90s | Moderate effort"] },
+      { name: "Cool-Down", exercises: ["5min easy + static stretch"] }
+    ]},
+    { title: "Mobility & Recovery", type: "mobility", badge: "mobility", blocks: [
+      { name: "Session", exercises: ["Full Mobility Flow, 30-40min", "Optional: 20-30min easy walk"] }
+    ]},
+    { title: "Rest Day", type: "rest", badge: "rest", blocks: [
+      { name: "Session", exercises: ["Full rest. No structured training."] }
+    ]}
+  ]);
+
+  // Week 5
+  weeks.push([
+    { title: "Strength A — Lower Body + Sled Push Skill", type: "strength", badge: "strength", blocks: [
+      { name: "Warm-Up", exercises: ["5-8min Daily Short Warm-Up"] },
+      { name: "Strength", exercises: [
+        "Back Squat (or Goblet Squat) — 4×6 @ RPE7 | Rest 90-120s",
+        "Romanian Deadlift — 3×8 @ RPE6-7, controlled 3s eccentric | Rest 90s",
+        "Walking Lunges (BW → light DB) — 3×12/leg | Rest 60s"
+      ]},
+      { name: "Station Skill", exercises: ["Sled Push technique: 5×20m @ ~65% race weight | Rest 90s"] },
+      { name: "Core", exercises: ["Weighted Plank or Pallof Press — 3×30-40s/side | Rest 45-60s"] }
+    ]},
+    { title: "Running — Threshold", type: "run", badge: "run", blocks: [
+      { name: "Warm-Up", exercises: ["10min easy jog + dynamic mobility"] },
+      { name: "Main Set", exercises: ["5×6min @ Threshold, 90s jog recovery"] },
+      { name: "Cool-Down", exercises: ["5-10min easy jog/walk"] }
+    ]},
+    { title: "Strength B — Upper/Pull + SkiErg Skill", type: "strength", badge: "strength", blocks: [
+      { name: "Warm-Up", exercises: ["5-8min Daily Short Warm-Up"] },
+      { name: "Strength", exercises: [
+        "Bent-Over Row or Pull-Up — 4×6 @ RPE6-7 | Rest 90s",
+        "DB/BB Shoulder Press — 3×10 @ RPE6-7 | Rest 90s",
+        "Dead Hang / Grip Hold — 3×max (cap 45s) | Rest 60s"
+      ]},
+      { name: "Station Skill", exercises: [
+        "SkiErg: 4×500m @ controlled/Threshold | Rest 90s",
+        "Farmers Carry — 4×40m @ ~80% race weight/hand | Rest 60-75s"
+      ]}
+    ]},
+    { title: "Easy/Long Run + Mobility", type: "run", badge: "run", blocks: [
+      { name: "Run", exercises: ["Easy continuous run: 48min Z2"] },
+      { name: "Mobility", exercises: ["Full Mobility Flow, 20-30min"] }
+    ]},
+    { title: "Hybrid Circuit", type: "hybrid", badge: "hybrid", blocks: [
+      { name: "Warm-Up", exercises: ["10min easy movement + dynamic mobility"] },
+      { name: "Main Set", exercises: ["4 rounds: 300m SkiErg + 20m Farmers Carry (moderate) + 300m Row | Rest 2min | Build toward race effort"] },
+      { name: "Cool-Down", exercises: ["5min easy + static stretch"] }
+    ]},
+    { title: "Mobility & Recovery", type: "mobility", badge: "mobility", blocks: [
+      { name: "Session", exercises: ["Full Mobility Flow, 30-40min", "Optional: 20-30min easy walk"] }
+    ]},
+    { title: "Rest Day", type: "rest", badge: "rest", blocks: [
+      { name: "Session", exercises: ["Full rest. No structured training."] }
+    ]}
+  ]);
+
+  // Week 6
+  weeks.push([
+    { title: "Strength A — Lower Body + Sled Push Skill", type: "strength", badge: "strength", blocks: [
+      { name: "Warm-Up", exercises: ["5-8min Daily Short Warm-Up"] },
+      { name: "Strength", exercises: [
+        "Back Squat (or Goblet Squat) — 4×6 @ RPE7-8 | Rest 90-120s",
+        "Romanian Deadlift — 3×8 @ RPE6-7, controlled 3s eccentric | Rest 90s",
+        "Walking Lunges (BW → light DB) — 3×12/leg | Rest 60s"
+      ]},
+      { name: "Station Skill", exercises: ["Sled Push technique: 5×20m @ ~70% race weight | Rest 90s"] },
+      { name: "Core", exercises: ["Weighted Plank or Pallof Press — 3×30-40s/side | Rest 45-60s"] }
+    ]},
+    { title: "Running — Threshold", type: "run", badge: "run", blocks: [
+      { name: "Warm-Up", exercises: ["10min easy jog + dynamic mobility"] },
+      { name: "Main Set", exercises: ["5×6min @ Threshold, 90s jog recovery (last week before VO2 block)"] },
+      { name: "Cool-Down", exercises: ["5-10min easy jog/walk"] }
+    ]},
+    { title: "Strength B — Upper/Pull + SkiErg Skill", type: "strength", badge: "strength", blocks: [
+      { name: "Warm-Up", exercises: ["5-8min Daily Short Warm-Up"] },
+      { name: "Strength", exercises: [
+        "Bent-Over Row or Pull-Up — 4×6 @ RPE6-7 | Rest 90s",
+        "DB/BB Shoulder Press — 3×10 @ RPE6-7 | Rest 90s",
+        "Dead Hang / Grip Hold — 3×max (cap 45s) | Rest 60s"
+      ]},
+      { name: "Station Skill", exercises: [
+        "SkiErg: 4×500m @ controlled/Threshold | Rest 90s",
+        "Farmers Carry — 4×40m @ ~85% race weight/hand | Rest 60-75s"
+      ]}
+    ]},
+    { title: "Easy/Long Run + Mobility", type: "run", badge: "run", blocks: [
+      { name: "Run", exercises: ["Easy continuous run: 50min Z2"] },
+      { name: "Mobility", exercises: ["Full Mobility Flow, 20-30min"] }
+    ]},
+    { title: "Hybrid Circuit — Mini Simulation", type: "hybrid", badge: "hybrid", blocks: [
+      { name: "Warm-Up", exercises: ["10min easy movement + dynamic mobility"] },
+      { name: "Main Set", exercises: ["Mini-simulation: 500m SkiErg + 15 Wall Balls + 25m Sled Push (light) + 500m Row + 20m Burpee Broad Jump. Continuous, moderate pace."] },
+      { name: "Cool-Down", exercises: ["5min easy + static stretch"] }
+    ]},
+    { title: "Mobility & Recovery", type: "mobility", badge: "mobility", blocks: [
+      { name: "Session", exercises: ["Full Mobility Flow, 30-40min", "Optional: 20-30min easy walk"] }
+    ]},
+    { title: "Rest Day + Phase 1 Benchmark", type: "rest", badge: "rest", blocks: [
+      { name: "Session", exercises: ["Full rest day."] },
+      { name: "Benchmark Test (do early Week 7 or Sat of Week 6)", exercises: [
+        "1. 2km time trial run — record time",
+        "2. Max unbroken wall balls at race weight — record reps",
+        "3. Sled push 50m at race weight — record time",
+        "4. 1000m row — record time"
+      ]}
+    ]}
+  ]);
+
+  // ══════ PHASE 2: Weeks 7-12 ══════
+  function phase2Week(weekNum, sqReps, dlReps, sqRPE, dlRPE, sledPct, vo2Reps, runMin, pullReps, pullRPE, sledPullPct, hybridDesc) {
+    const hasStrides = weekNum >= 10;
+    return [
+      { title: "Strength A — Lower (Heavier) + Sled Push Power", type: "strength", badge: "strength", blocks: [
+        { name: "Warm-Up", exercises: ["5-8min Daily Short Warm-Up"] },
+        { name: "Strength", exercises: [
+          `Back Squat — 5×${sqReps} @ RPE${sqRPE} | Rest 2-3min (full recovery)`,
+          `Deadlift (conventional or trap bar) — 4×${dlReps} @ RPE${dlRPE} | Rest 2-3min`,
+          "Bulgarian Split Squat — 3×8/leg @ RPE7 | Rest 75-90s"
+        ]},
+        { name: "Power", exercises: [`Sled Push power intervals: 6×25m @ ~${sledPct}% race weight | Rest 90-120s (full recovery)`] },
+        { name: "Core", exercises: ["Hanging Leg Raise or Weighted Sit-up — 3×12 | Rest 60s"] }
+      ]},
+      { title: "Running — VO2max Intervals", type: "run", badge: "run", blocks: [
+        { name: "Warm-Up", exercises: ["10-12min easy jog + dynamic mobility + 3×20m strides"] },
+        { name: "Main Set", exercises: [`${vo2Reps}×3min @ Hard(VO2) / 2min easy jog` + (hasStrides ? " + post-run 6×100m strides" : "")] },
+        { name: "Cool-Down", exercises: ["5-10min easy jog/walk + core finisher: 3×12 hollow holds"] }
+      ]},
+      { title: "Strength B — Upper/Pull (Heavier) + Sled Pull Power", type: "strength", badge: "strength", blocks: [
+        { name: "Warm-Up", exercises: ["5-8min Daily Short Warm-Up"] },
+        { name: "Strength", exercises: [
+          `Weighted Pull-Up or Heavy Row — 4×${pullReps} @ RPE${pullRPE} | Rest 2min`,
+          "Push Press — 4×6 @ RPE7-8 | Rest 2min",
+          "Single-Arm DB Row — 3×10/side | Rest 60-75s"
+        ]},
+        { name: "Power", exercises: [`Sled Pull power intervals: 6×25m @ ~${sledPullPct}% race weight | Rest 90-120s (full recovery)`] },
+        { name: "Carry", exercises: ["Farmers Carry — Heavy: 4×50m @ race weight +10-20% (overload) | Rest 90s"] }
+      ]},
+      { title: "Long Easy Run + Mobility", type: "run", badge: "run", blocks: [
+        { name: "Run", exercises: [`Long easy run: ${runMin}min Z2` + (hasStrides ? " + 6×100m strides" : "")] },
+        { name: "Mobility", exercises: ["Full Mobility Flow, 20-30min"] }
+      ]},
+      { title: "Engine/Hybrid", type: "hybrid", badge: "hybrid", blocks: [
+        { name: "Warm-Up", exercises: ["10min easy movement + dynamic mobility"] },
+        { name: "Main Set", exercises: [hybridDesc] },
+        { name: "Cool-Down", exercises: ["5min easy + static stretch"] }
+      ]},
+      { title: "Mobility & Recovery", type: "mobility", badge: "mobility", blocks: [
+        { name: "Session", exercises: ["Full Mobility Flow, 30-40min", "Optional: easy bike or swim, 20-30min, very low intensity"] }
+      ]},
+      { title: "Rest Day", type: "rest", badge: "rest", blocks: [
+        { name: "Session", exercises: ["Full rest. No structured training."] }
+      ]}
+    ];
+  }
+
+  weeks.push(phase2Week(7, 5, 5, "7", "7", 90, 6, 50, 6, "7-8", 90, "5 rounds: 250m SkiErg + 15 Wall Balls (race weight) + 250m Row | Rest 90s"));
+  weeks.push(phase2Week(8, 5, 5, "7", "7", 95, 6, 52, 6, "7-8", 95, "EMOM 16min: odd min 12 Wall Balls, even min 15 Burpee Broad Jumps. Race-weight wall ball."));
+  weeks.push(phase2Week(9, 5, 5, "7-8", "7-8", 100, 7, 55, 6, "7-8", 100, "4 rounds: 500m Row + 20m Burpee Broad Jump + 40m Farmers Carry (moderate-heavy) | Rest 2min"));
+  weeks.push(phase2Week(10, 4, 4, "8", "8", 100, 7, 55, 5, "7-8", 100, "5 rounds: 250m SkiErg + 15 Wall Balls (race weight) + 250m Row | Rest 75s"));
+  weeks.push(phase2Week(11, 4, 4, "8", "8", 105, 8, 60, 5, "7-8", 105, "EMOM 18min: odd min 14 Wall Balls, even min 15 Burpee Broad Jumps + 10m sprint"));
+  weeks.push(phase2Week(12, 3, 3, "8", "8", 110, 8, 60, 4, "7-8", 110, "4 rounds: 500m Row + 25m Burpee Broad Jump + 50m Farmers Carry (race weight) | Rest 90s"));
+
+  // ══════ PHASE 3: Weeks 13-18 ══════
+  function phase3Week(compDesc, simDesc, easyRunMin) {
+    return [
+      { title: "Strength — Lower (Maintenance)", type: "strength", badge: "strength", blocks: [
+        { name: "Warm-Up", exercises: ["5-8min Daily Short Warm-Up"] },
+        { name: "Strength", exercises: [
+          "Back Squat — 3×5 @ RPE7 (maintenance) | Rest 2min",
+          "Romanian Deadlift — 3×6 @ RPE6-7 | Rest 90s"
+        ]},
+        { name: "Station", exercises: ["Sled Push @ 100% race weight: 4×25m | Rest 2min (full recovery)"] }
+      ]},
+      { title: "Compromised Running", type: "run", badge: "sim", blocks: [
+        { name: "Warm-Up", exercises: ["12-15min easy jog + full dynamic mobility + station-specific activation reps"] },
+        { name: "Main Set", exercises: [compDesc] },
+        { name: "Cool-Down", exercises: ["10min easy jog/walk + full mobility flow"] }
+      ]},
+      { title: "Strength — Upper/Pull (Maintenance)", type: "strength", badge: "strength", blocks: [
+        { name: "Warm-Up", exercises: ["5-8min Daily Short Warm-Up"] },
+        { name: "Strength", exercises: [
+          "Pull-Up / Row — 3×6 @ RPE6-7 (maintenance) | Rest 90s",
+          "Push Press — 3×6 @ RPE6-7 (maintenance) | Rest 90s"
+        ]},
+        { name: "Station", exercises: [
+          "Sled Pull @ 100% race weight: 4×25m | Rest 2min",
+          "Farmers Carry @ race weight: 3×100m, unbroken if possible | Rest 90s"
+        ]}
+      ]},
+      { title: "Easy/Recovery Run + Mobility", type: "run", badge: "run", blocks: [
+        { name: "Run", exercises: [`Easy recovery run: ${easyRunMin}min Z2. Keep this genuinely easy.`] },
+        { name: "Mobility", exercises: ["Full Mobility Flow, 20-30min"] }
+      ]},
+      { title: "Race Simulation", type: "sim", badge: "sim", blocks: [
+        { name: "Warm-Up", exercises: ["10-15min easy jog + dynamic mobility"] },
+        { name: "Main Set", exercises: [simDesc] },
+        { name: "Cool-Down", exercises: ["10min easy walk/jog + full mobility flow"] }
+      ]},
+      { title: "Mobility & Recovery", type: "mobility", badge: "mobility", blocks: [
+        { name: "Session", exercises: ["Full Mobility Flow, 30-40min. Light movement only — protect this day."] }
+      ]},
+      { title: "Rest Day", type: "rest", badge: "rest", blocks: [
+        { name: "Session", exercises: ["Full rest. No structured training."] }
+      ]}
+    ];
+  }
+
+  weeks.push(phase3Week(
+    "4 rounds: 400m run @ Race Pace + 25m Sled Push (100% race weight) + 400m run @ Race Pace | Rest 2min",
+    "Half-HYROX: Run 1km + SkiErg 1000m → Run 1km + Sled Push 50m → Run 1km + Sled Pull 50m → Run 1km + Burpee Broad Jump 80m. All runs @ Race Pace.", 50
+  ));
+  weeks.push(phase3Week(
+    "5 rounds: 500m run @ Race Pace + 50 Wall Balls (race weight) + 500m run @ Race Pace | Rest 2min",
+    "Back-half sim: Run 1km + Row 1000m → Run 1km + Farmers Carry 200m → Run 1km + Sandbag Lunges 100m → Run 1km + 100 Wall Balls → Run 1km. All race weight.", 50
+  ));
+  weeks.push(phase3Week(
+    "4 rounds: 600m run @ Race Pace + 50m Sled Pull (race weight) + 600m run @ Race Pace | Rest 2-3min",
+    "Station Gauntlet: all 8 stations back-to-back at full race weights/distances, only 200m easy jog between each. Tests pure station fatigue.", 45
+  ));
+  weeks.push(phase3Week(
+    "6 rounds: 400m run @ Race Pace + 100m Farmers Carry (race weight) + 400m run @ Race Pace | Rest 90s",
+    "FULL HYROX SIMULATION #1: complete race — 8×1km + all 8 stations @ full race weights, correct order, race-day transitions. RECORD EVERY SPLIT.", 45
+  ));
+  weeks.push(phase3Week(
+    "4 rounds: 800m run @ Race Pace + 50m Sandbag Lunges (race weight) + 800m run @ Race Pace | Rest 2-3min",
+    "Weak-Point Session: identify your 2 slowest stations from last week's simulation. Build 45min around them: technique reps + race-weight intervals + 2×1km @ Race Pace bracketing each.", 45
+  ));
+  weeks.push(phase3Week(
+    "Deload: 3 rounds easy — 400m easy run + light station (~50% load) + 400m easy run. Focus on smooth transitions, not intensity.",
+    "Deload: light technique-only run-throughs of all 8 stations @ ~50% effort/weight. Very easy. No 1km runs between, just movement to stay sharp.", 35
+  ));
+
+  // ══════ PHASE 4: Weeks 19-21 ══════
+  // Week 19
+  weeks.push([
+    { title: "Strength — Moderate", type: "strength", badge: "strength", blocks: [
+      { name: "Warm-Up", exercises: ["5-8min Daily Short Warm-Up"] },
+      { name: "Strength", exercises: [
+        "Back Squat — 3×5 @ RPE7 | Rest 2min",
+        "Deadlift — 3×5 @ RPE7 | Rest 2-3min",
+        "No grinding heavy singles — clean, controlled reps only."
+      ]}
+    ]},
+    { title: "Compromised Running — Final Hard Session", type: "run", badge: "sim", blocks: [
+      { name: "Warm-Up", exercises: ["12-15min easy jog + dynamic mobility"] },
+      { name: "Main Set", exercises: ["4 rounds: 500m run @ Race Pace + 40m Sled Push or 50 Wall Balls (alternate by round, race weight) + 500m run @ Race Pace | Rest 2min. Sharpening, not building."] },
+      { name: "Cool-Down", exercises: ["10min easy jog + mobility"] }
+    ]},
+    { title: "Strength — Moderate Upper/Pull", type: "strength", badge: "strength", blocks: [
+      { name: "Warm-Up", exercises: ["5-8min Daily Short Warm-Up"] },
+      { name: "Strength", exercises: [
+        "Pull-Up/Row — 3×6 @ RPE6-7 | Rest 90s",
+        "Push Press — 3×6 @ RPE6-7 | Rest 90s",
+        "Farmers Carry @ race weight — 2×100m | Rest 90s"
+      ]}
+    ]},
+    { title: "Easy Run + Mobility", type: "run", badge: "run", blocks: [
+      { name: "Run", exercises: ["Easy 40min Z2"] },
+      { name: "Mobility", exercises: ["Full Mobility Flow, 30min"] }
+    ]},
+    { title: "FULL HYROX SIMULATION #2", type: "sim", badge: "race", blocks: [
+      { name: "Warm-Up", exercises: ["15min easy jog + full dynamic mobility + activation reps — treat this like a real race warm-up"] },
+      { name: "Main Set", exercises: ["Complete 8×1km + all 8 stations @ full race weights, correct order, race-day transitions. RECORD EVERY SPLIT and compare to Week 16."] },
+      { name: "Cool-Down", exercises: ["10-15min easy walk/jog + full mobility flow"] }
+    ]},
+    { title: "Mobility & Recovery", type: "mobility", badge: "mobility", blocks: [
+      { name: "Session", exercises: ["Full Mobility Flow, 30-40min. Light movement only — you just did a full simulation."] }
+    ]},
+    { title: "Rest Day", type: "rest", badge: "rest", blocks: [
+      { name: "Session", exercises: ["Full rest."] }
+    ]}
+  ]);
+
+  // Week 20
+  weeks.push([
+    { title: "Strength — Light", type: "strength", badge: "strength", blocks: [
+      { name: "Warm-Up", exercises: ["5-8min Daily Short Warm-Up"] },
+      { name: "Strength", exercises: [
+        "Back Squat — 2×5 @ RPE5-6 | Rest 90s",
+        "Deadlift — 2×5 @ RPE5-6 | Rest 90s"
+      ]},
+      { name: "Station Feel", exercises: [
+        "Sled Push @ race weight: 2×25m, easy effort, just for feel | Rest 90s",
+        "Sled Pull @ race weight: 2×25m, easy effort | Rest 90s"
+      ]}
+    ]},
+    { title: "Short Sharpening Intervals", type: "run", badge: "run", blocks: [
+      { name: "Warm-Up", exercises: ["10min easy jog + dynamic mobility"] },
+      { name: "Main Set", exercises: ["4×3min @ Race Pace, 2min easy jog recovery. Finish feeling sharp, not wrecked."] },
+      { name: "Cool-Down", exercises: ["5-10min easy jog"] }
+    ]},
+    { title: "Light Strength / Mobility Circuit", type: "mobility", badge: "mobility", blocks: [
+      { name: "Session", exercises: ["20min bodyweight/light-DB circuit: squats, push-ups, light rows, plank — easy effort, mobility-focused"] }
+    ]},
+    { title: "Easy Run + Mobility", type: "run", badge: "run", blocks: [
+      { name: "Run", exercises: ["Easy 30min Z2"] },
+      { name: "Mobility", exercises: ["Full Mobility Flow, 20-30min"] }
+    ]},
+    { title: "Technique Run-Through", type: "hybrid", badge: "hybrid", blocks: [
+      { name: "Session", exercises: ["All 8 stations, light weight (50-60% race load), rehearsing movement patterns and transitions. No 1km runs — light jog/walk only. 30-40min total, low intensity."] }
+    ]},
+    { title: "Rest / Optional Light Walk", type: "rest", badge: "rest", blocks: [
+      { name: "Session", exercises: ["Complete rest, or a 20min easy walk if restless. No structured training."] }
+    ]},
+    { title: "Rest Day", type: "rest", badge: "rest", blocks: [
+      { name: "Session", exercises: ["Full rest."] }
+    ]}
+  ]);
+
+  // Week 21 — RACE WEEK
+  weeks.push([
+    { title: "Easy Shakeout + Mobility (Nov 9)", type: "run", badge: "run", blocks: [
+      { name: "Run", exercises: ["Very light 20min easy jog"] },
+      { name: "Mobility", exercises: ["Full Mobility Flow, 20-30min. Sleep priority starts now — aim for 8+ hours nightly."] }
+    ]},
+    { title: "Short Activation (Nov 10)", type: "hybrid", badge: "hybrid", blocks: [
+      { name: "Session", exercises: [
+        "10min easy jog",
+        "4×20m relaxed strides",
+        "10 Wall Balls (light)",
+        "10 Burpee Broad Jumps (easy pace)",
+        "Keep everything light — staying loose, not building fitness."
+      ]}
+    ]},
+    { title: "Full Rest (Nov 11)", type: "rest", badge: "rest", blocks: [
+      { name: "Session", exercises: [
+        "Complete rest. No training.",
+        "Begin increasing carbohydrate intake and hydration.",
+        "Pack race bag: shoes, kit, race belt/bib holder, fuel, water bottle, change of clothes."
+      ]}
+    ]},
+    { title: "Shakeout + Travel (Nov 12)", type: "run", badge: "run", blocks: [
+      { name: "Session", exercises: [
+        "15min very easy jog",
+        "Light full-body mobility flow",
+        "Travel to Cairo if needed — stay hydrated and mobile during travel."
+      ]}
+    ]},
+    { title: "Rest + Final Prep (Nov 13)", type: "rest", badge: "rest", blocks: [
+      { name: "Session", exercises: [
+        "Full rest. No training.",
+        "Walk the venue/course area if possible.",
+        "Early sleep tonight.",
+        "Lay out full race kit, bib, shoes, fuel/gels, water bottle."
+      ]}
+    ]},
+    { title: "RACE DAY", type: "race", badge: "race", blocks: [
+      { name: "PRE-RACE", exercises: [
+        "Eat familiar carb-focused breakfast 2.5-3hrs before wave",
+        "Arrive with buffer for warm-up, bag check, toilet queues",
+        "Warm-up: 10min easy jog + dynamic mobility + strides + light activation reps",
+        "Hydrate steadily — avoid chugging right before"
+      ]},
+      { name: "RACE STRATEGY", exercises: [
+        "Runs 1-3: Controlled, slightly conservative — trained race pace, not faster",
+        "Sled Push & Pull: Controlled, broken into manageable efforts",
+        "Runs 4-6: WHERE THE RACE IS WON — hold pace as fatigue builds",
+        "Wall Balls: Break early and often by plan (sets of 15-20)",
+        "Final 1km: EMPTY THE TANK — the only time to go fully all-out"
+      ]},
+      { name: "STATION ORDER", exercises: [
+        "1. SkiErg 1000m",
+        "2. Sled Push 50m (152kg M / 102kg W)",
+        "3. Sled Pull 50m (103kg M / 78kg W)",
+        "4. Burpee Broad Jump 80m",
+        "5. Rowing 1000m",
+        "6. Farmers Carry 200m (2×24kg M / 2×16kg W)",
+        "7. Sandbag Lunges 100m (20kg M / 10kg W)",
+        "8. Wall Balls 100 reps (9kg M / 6kg W)"
+      ]}
+    ]},
+    { title: "Recovery & Celebration", type: "rest", badge: "rest", blocks: [
+      { name: "Session", exercises: ["YOU DID IT. Rest, recover, celebrate. Light walking and stretching only."] }
+    ]}
+  ]);
+
+  return weeks;
+}
+
+const ALL_WEEKS = generateAllWeeks();
+
+// ═══════════════════════════════════════════
+//  GUIDE DATA
+// ═══════════════════════════════════════════
+const GUIDES = [
+  {
+    icon: "&#127939;", title: "Station Techniques", desc: "Master all 8 HYROX stations",
+    content: `
+<h3>1. SkiErg — 1000m</h3>
+<ul>
+<li>Hinge from the hips, not just arms — drive through lats and core, not biceps.</li>
+<li>Keep a slight knee bend; use legs to add power on the pull.</li>
+<li>Stroke rate ~30-34spm for sustainable pace.</li>
+</ul>
+<div class="tip">Don't go out too hard in the first 200m. This is station 1 — pace it like you have 7 more stations to do.</div>
+
+<h3>2. Sled Push — 50m (152kg M / 102kg W)</h3>
+<ul>
+<li>Low shin angle, hips low, arms locked out, head neutral.</li>
+<li>Short, fast, choppy steps generate more consistent force than long strides.</li>
+<li>Drive through the whole foot, not just toes.</li>
+</ul>
+<div class="tip">Don't stand too upright (loses leg drive) or go all-out for 15m then stall. Pace it with sustained pushes and brief resets.</div>
+
+<h3>3. Sled Pull — 50m (103kg M / 78kg W)</h3>
+<ul>
+<li>Sit back into a slight squat, pull hand-over-hand using lats and a strong core brace.</li>
+<li>Keep the rope low and pull in a straight line.</li>
+</ul>
+<div class="tip">Standing too tall and pulling with arms only burns out forearms fast. Use legs to help drive the pull.</div>
+
+<h3>4. Burpee Broad Jump — 80m</h3>
+<ul>
+<li>Two-footed jump forward, chest to floor, explosive jump — rhythm beats speed.</li>
+<li>A flatter, more forward-driving jump covers ground more efficiently.</li>
+</ul>
+<div class="tip">Find one sustainable rhythm and hold it the whole 80m. Don't sprint the first 20m then collapse.</div>
+
+<h3>5. Rowing — 1000m</h3>
+<ul>
+<li>Legs–hips–arms on the drive, arms–hips–legs on the recovery.</li>
+<li>Damper setting 3–5 typically suits most athletes.</li>
+</ul>
+<div class="tip">Pulling primarily with arms instead of leg drive wrecks pacing for the run that follows.</div>
+
+<h3>6. Farmers Carry — 200m (2×24kg M / 2×16kg W)</h3>
+<ul>
+<li>Tall posture, braced core, shoulders down and back.</li>
+<li>Quick, controlled steps. Strategic short breaks beat grinding to complete grip failure.</li>
+</ul>
+<div class="tip">Relax the forearms as much as possible while still holding on.</div>
+
+<h3>7. Sandbag Lunges — 100m (20kg M / 10kg W)</h3>
+<ul>
+<li>Sandbag on back (bear-hug or shouldered).</li>
+<li>Walking lunges, knee to ~90°, drive through front heel, stay tall.</li>
+</ul>
+<div class="tip">A slightly shorter stride with good rhythm covers ground faster and saves quads for wall balls.</div>
+
+<h3>8. Wall Balls — 100 reps (9kg M / 6kg W)</h3>
+<ul>
+<li>Full depth squat (hip crease below knee), drive up explosively.</li>
+<li>Break early and often by design (4×25 or 5×20).</li>
+</ul>
+<div class="tip">The squat drive is what saves your shoulders. Fight arms-only throwing when legs fatigue.</div>
+
+<h3>The Real Skill: Running Off the Stations</h3>
+<p>The single biggest separator between a good and a poor HYROX time isn't station strength or raw running speed — it's how well you run on legs that just got hammered. Phase 3 trains this specifically.</p>
+`
+  },
+  {
+    icon: "&#9889;", title: "Effort Scale & Rest Periods", desc: "How hard to push and when to rest",
+    content: `
+<h3>Effort Scale</h3>
+<table>
+<tr><th>Term</th><th>Meaning</th></tr>
+<tr><td>Easy / Z2</td><td>Conversational pace, RPE 3-4/10. Nose-breathing.</td></tr>
+<tr><td>Threshold</td><td>"Comfortably hard," RPE 7/10 — short sentences only.</td></tr>
+<tr><td>Race Pace</td><td>RPE 7-8/10. The effort you hold during HYROX runs.</td></tr>
+<tr><td>Hard/VO2</td><td>RPE 8-9/10 — short, sharp, breathing heavily.</td></tr>
+<tr><td>Max Effort</td><td>RPE 9-10/10 — all-out, used sparingly.</td></tr>
+</table>
+
+<h3>Rest Period Logic</h3>
+<table>
+<tr><th>Work Type</th><th>Rest</th></tr>
+<tr><td>Heavy compounds (Squat, Deadlift)</td><td>2-3 minutes</td></tr>
+<tr><td>Moderate strength / accessory</td><td>60-90 seconds</td></tr>
+<tr><td>Sled push/pull power intervals</td><td>90s-2min (full recovery)</td></tr>
+<tr><td>Core / grip work</td><td>45-60 seconds</td></tr>
+<tr><td>Threshold/VO2 running intervals</td><td>As specified</td></tr>
+<tr><td>Hybrid circuits / EMOMs</td><td>As specified</td></tr>
+</table>
+`
+  },
+  {
+    icon: "&#128170;", title: "Race Standards (Open Division)", desc: "Official weights and distances",
+    content: `
+<h3>Official 2025/26 HYROX Open Division Standards</h3>
+<table>
+<tr><th>#</th><th>Station</th><th>Men</th><th>Women</th></tr>
+<tr><td>1</td><td>SkiErg 1000m</td><td>—</td><td>—</td></tr>
+<tr><td>2</td><td>Sled Push 50m</td><td>152kg total</td><td>102kg total</td></tr>
+<tr><td>3</td><td>Sled Pull 50m</td><td>103kg total</td><td>78kg total</td></tr>
+<tr><td>4</td><td>Burpee Broad Jump 80m</td><td>BW</td><td>BW</td></tr>
+<tr><td>5</td><td>Rowing 1000m</td><td>—</td><td>—</td></tr>
+<tr><td>6</td><td>Farmers Carry 200m</td><td>2×24kg</td><td>2×16kg</td></tr>
+<tr><td>7</td><td>Sandbag Lunges 100m</td><td>20kg</td><td>10kg</td></tr>
+<tr><td>8</td><td>Wall Balls 100 reps</td><td>9kg / 9ft</td><td>6kg / 9ft</td></tr>
+</table>
+
+<h3>Race Format</h3>
+<p>Run 1km → Station → Run 1km → Station → ... × 8, finishing with a final 1km run.</p>
+<p>Total running: 8km. Total distance with Roxzone transitions: ~9.5-10km.</p>
+`
+  },
+  {
+    icon: "&#128736;", title: "Mobility & Recovery Protocol", desc: "Warm-ups, mobility flows, and recovery",
+    content: `
+<h3>Daily Short Warm-Up (5-8min)</h3>
+<ul>
+<li>World's Greatest Stretch — 5/side</li>
+<li>Hip 90/90 rotations — 8/side</li>
+<li>Ankle rocks (knee-to-wall) — 10/side</li>
+<li>Band pull-aparts — 15 reps</li>
+<li>Leg swings (front/back + lateral) — 10/side</li>
+</ul>
+
+<h3>Full Mobility Flow (20-40min)</h3>
+<table>
+<tr><th>Area</th><th>Drill</th><th>Dose</th></tr>
+<tr><td>Hips</td><td>Couch stretch</td><td>60-90s/side</td></tr>
+<tr><td>Hips</td><td>90/90 hip switches</td><td>10 controlled reps</td></tr>
+<tr><td>Hips</td><td>Deep goblet squat hold</td><td>2min total</td></tr>
+<tr><td>Ankles</td><td>Weighted ankle dorsiflexion</td><td>2×10/side</td></tr>
+<tr><td>T-spine</td><td>Open book rotations</td><td>8/side</td></tr>
+<tr><td>T-spine</td><td>Thread the needle</td><td>8/side</td></tr>
+<tr><td>Shoulders</td><td>Banded shoulder dislocates</td><td>15 reps</td></tr>
+<tr><td>Shoulders</td><td>Wall slides</td><td>10 reps</td></tr>
+<tr><td>Post. chain</td><td>Forward fold</td><td>90s</td></tr>
+<tr><td>Grip</td><td>Wrist flexor/extensor stretch</td><td>30s each</td></tr>
+<tr><td>General</td><td>Foam roll: quads, glutes, calves, lats</td><td>1min each</td></tr>
+</table>
+
+<h3>Sleep & Recovery Non-Negotiables</h3>
+<ul>
+<li>7-9 hours sleep, especially Phase 3-4.</li>
+<li>Hydration: aim for pale-yellow urine; increase electrolytes in hot sessions (Cairo heat!).</li>
+<li>If two consecutive sessions feel unusually heavy/flat, take an extra rest day.</li>
+</ul>
+`
+  },
+  {
+    icon: "&#127796;", title: "Race Day Strategy — Cairo", desc: "Pacing, morning checklist, Cairo-specific tips",
+    content: `
+<h3>Pacing Philosophy</h3>
+<div class="tip">The #1 mistake in HYROX is treating the first two stations like a sprint because you feel fresh. Going too hard early directly wrecks your sled pull and every run after it.</div>
+<ul>
+<li><strong>Runs 1-3:</strong> Controlled, slightly conservative — trained race pace, not faster.</li>
+<li><strong>Sled Push & Pull:</strong> Controlled, broken into manageable pushes/pulls.</li>
+<li><strong>Runs 4-6:</strong> Where the race is actually WON or LOST — hold pace as fatigue builds.</li>
+<li><strong>Wall Balls:</strong> Break early and often by plan (sets of 15-20).</li>
+<li><strong>Final 1km:</strong> Empty the tank — the only time you can go fully all-out.</li>
+</ul>
+
+<h3>Race Morning Checklist</h3>
+<ul>
+<li>Eat a familiar, carb-focused breakfast 2.5-3hrs before your wave.</li>
+<li>Arrive with buffer for warm-up, bag check, and toilet queues.</li>
+<li>Warm-up: 10min easy jog + dynamic mobility + strides + light activation reps.</li>
+<li>Hydrate steadily in the 2hrs before — avoid chugging right before.</li>
+<li>Know your station order cold — zero hesitation mid-race.</li>
+</ul>
+
+<h3>Cairo-Specific Notes</h3>
+<ul>
+<li>November in Cairo is typically mild/warm — check forecast and adjust hydration/clothing.</li>
+<li>First-ever Cairo event: build in extra buffer time for venue logistics, parking, registration.</li>
+<li>Confirm official race-week details via the HYROX Cairo event page closer to November.</li>
+</ul>
+`
+  },
+  {
+    icon: "&#128218;", title: "Program Adjustments", desc: "How to adapt when life happens",
+    content: `
+<h3>How To Adjust</h3>
+<ul>
+<li>If a session leaves you unusually flat 2 days running, swap that week's hardest day for an easy run + mobility, then resume.</li>
+<li><strong>Missed a day?</strong> Don't try to "make it up" by doubling the next day. Just continue the plan from where you are — consistency over weeks matters far more than any single session.</li>
+<li>All running paces are effort-based (not fixed min/km), so the plan adapts automatically as your fitness improves.</li>
+</ul>
+
+<h3>4-Phase Structure</h3>
+<table>
+<tr><th>Phase</th><th>Weeks</th><th>Focus</th></tr>
+<tr><td>1. Base & Foundations</td><td>1-6</td><td>Aerobic base, movement quality, strength foundation</td></tr>
+<tr><td>2. Strength & Engine</td><td>7-12</td><td>Max strength, VO2max, threshold running, station power</td></tr>
+<tr><td>3. Race Prep</td><td>13-18</td><td>Compromised running, race simulations, race-weight stations</td></tr>
+<tr><td>4. Peak & Race</td><td>19-21</td><td>Sharpen, taper, full simulation, RACE DAY</td></tr>
+</table>
+`
+  }
+];
+
+// ═══════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════
+const STATE_KEY = 'hyrox_cairo_state';
+let state = loadState();
+
+function loadState() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STATE_KEY));
+    return s || { completed: {}, benchmarks: {}, selectedPhase: 0 };
+  } catch { return { completed: {}, benchmarks: {}, selectedPhase: 0 }; }
+}
+function saveState() { localStorage.setItem(STATE_KEY, JSON.stringify(state)); }
+function dayKey(week, day) { return `w${week}d${day}`; }
+function isCompleted(week, day) { return !!state.completed[dayKey(week, day)]; }
+function toggleComplete(week, day) {
+  const k = dayKey(week, day);
+  state.completed[k] = !state.completed[k];
+  saveState();
+}
+
+// ═══════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════
+let currentPage = 'today';
+let viewingWeek = null;
+let viewingDay = null;
+
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    navigateTo(btn.dataset.page);
+  });
+});
+
+function navigateTo(page) {
+  currentPage = page;
+  viewingWeek = null;
+  viewingDay = null;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`page-${page}`).classList.add('active');
+  document.querySelector(`[data-page="${page}"]`).classList.add('active');
+  document.getElementById('workout-overlay').style.display = 'none';
+  renderPage(page);
+  window.scrollTo(0, 0);
+}
+
+function renderPage(page) {
+  switch(page) {
+    case 'today': renderToday(); break;
+    case 'program': renderProgram(); break;
+    case 'guide': renderGuide(); break;
+    case 'progress': renderProgress(); break;
+  }
+}
+
+// ═══════════════════════════════════════════
+//  TODAY PAGE
+// ═══════════════════════════════════════════
+function renderToday() {
+  const now = new Date();
+  const hour = now.getHours();
+  let greeting = hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
+  document.getElementById('hero-greeting').textContent = greeting;
+  document.getElementById('hero-date').textContent = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
+  // Countdown
+  const diff = RACE_DATE - now;
+  const days = Math.max(0, Math.floor(diff / 86400000));
+  const weeks = Math.floor(days / 7);
+  const remDays = days % 7;
+  const totalWorkouts = Object.keys(state.completed).filter(k => state.completed[k]).length;
+  document.getElementById('countdown').innerHTML = `
+    <div class="countdown-item"><div class="countdown-num">${days}</div><div class="countdown-label">Days</div></div>
+    <div class="countdown-item"><div class="countdown-num">${weeks}</div><div class="countdown-label">Weeks</div></div>
+    <div class="countdown-item"><div class="countdown-num">${remDays}</div><div class="countdown-label">Rem Days</div></div>
+    <div class="countdown-item"><div class="countdown-num">${totalWorkouts}</div><div class="countdown-label">Done</div></div>
+  `;
+
+  // Motivation
+  const qIdx = Math.floor(now.getTime() / 86400000) % MOTIVATIONAL_QUOTES.length;
+  const q = MOTIVATIONAL_QUOTES[qIdx];
+  document.getElementById('motivation-slot').innerHTML = `
+    <div class="motivation-card">
+      <div class="motivation-quote">"${q.q}"</div>
+      <div class="motivation-attr">— ${q.a}</div>
+    </div>
+  `;
+
+  // Find today's workout
+  const daysSinceStart = Math.floor((now - PROGRAM_START) / 86400000);
+  const currentWeek = Math.floor(daysSinceStart / 7);
+  const currentDay = daysSinceStart % 7;
+  const todayEl = document.getElementById('today-workout');
+
+  if (currentWeek < 0) {
+    todayEl.innerHTML = `<div class="today-card"><div class="today-phase">PROGRAM STARTS SOON</div>
+      <div class="today-day">Training begins ${fmtDate(PROGRAM_START)}</div>
+      <div class="today-type">Get your equipment ready and review the Guide section</div></div>`;
+    return;
+  }
+  if (currentWeek >= 21) {
+    todayEl.innerHTML = `<div class="today-card"><div class="today-phase">PROGRAM COMPLETE</div>
+      <div class="today-day">You've crossed the finish line!</div>
+      <div class="today-type">Check your progress and celebrate your journey</div></div>`;
+    return;
+  }
+
+  const workout = ALL_WEEKS[currentWeek][currentDay];
+  const phaseIdx = currentWeek < 6 ? 0 : currentWeek < 12 ? 1 : currentWeek < 18 ? 2 : 3;
+  const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const completed = isCompleted(currentWeek, currentDay);
+
+  todayEl.innerHTML = `
+    <div class="today-card" onclick="showWorkout(${currentWeek}, ${currentDay})">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div class="today-phase">PHASE ${phaseIdx + 1} — WEEK ${currentWeek + 1}</div>
+        <span class="badge badge-${workout.badge}">${workout.type}</span>
+      </div>
+      <div class="today-day">${dayNames[currentDay]} — ${workout.title}</div>
+      <div class="today-type">${fmtDate(dayDate(currentWeek + 1, currentDay))}</div>
+      <div class="today-preview" style="margin-top:12px">
+        ${workout.blocks.map(b => b.exercises[0]).slice(0, 2).join('<br>')}
+        ${workout.blocks.length > 2 ? '<br><span style="color:var(--orange)">Tap to see full workout →</span>' : ''}
+      </div>
+      ${completed ? '<div style="margin-top:12px;color:var(--green);font-weight:700">✓ Completed</div>' : ''}
+    </div>
+    ${currentDay < 6 ? (() => {
+      const tmrw = ALL_WEEKS[currentWeek][currentDay + 1];
+      return `<div style="font-size:12px;color:var(--text2);font-weight:600;margin:12px 0 6px">TOMORROW</div>
+        <div class="today-card" onclick="showWorkout(${currentWeek}, ${currentDay + 1})" style="opacity:0.7">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div class="today-day" style="font-size:16px">${dayNames[currentDay + 1]} — ${tmrw.title}</div>
+            <span class="badge badge-${tmrw.badge}">${tmrw.type}</span>
+          </div>
+        </div>`;
+    })() : ''}
+  `;
+}
+
+// ═══════════════════════════════════════════
+//  WORKOUT DETAIL
+// ═══════════════════════════════════════════
+function showWorkout(weekIdx, dayIdx) {
+  viewingWeek = weekIdx;
+  viewingDay = dayIdx;
+  const workout = ALL_WEEKS[weekIdx][dayIdx];
+  const phaseIdx = weekIdx < 6 ? 0 : weekIdx < 12 ? 1 : weekIdx < 18 ? 2 : 3;
+  const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const completed = isCompleted(weekIdx, dayIdx);
+
+  let html = `
+    <button class="back-btn" onclick="closeWorkout()">← Back</button>
+    <div class="workout-header">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div class="today-phase">PHASE ${phaseIdx + 1} — WEEK ${weekIdx + 1}</div>
+        <span class="badge badge-${workout.badge}">${workout.type}</span>
+      </div>
+      <div style="font-size:22px;font-weight:800;margin-bottom:4px">${dayNames[dayIdx]}</div>
+      <div style="font-size:16px;font-weight:600;color:var(--text2)">${workout.title}</div>
+      <div style="font-size:13px;color:var(--text2);margin-top:4px">${fmtDate(dayDate(weekIdx + 1, dayIdx))}</div>
+    </div>
+  `;
+
+  workout.blocks.forEach(block => {
+    html += `<div class="workout-block">
+      <div class="workout-block-title">${block.name}</div>
+      ${block.exercises.map(ex => {
+        const parts = ex.split(' | ');
+        let exHtml = `<div class="exercise"><div>${parts[0]}</div>`;
+        if (parts[1]) exHtml += `<div class="exercise-rest">${parts.slice(1).join(' | ')}</div>`;
+        exHtml += '</div>';
+        return exHtml;
+      }).join('')}
+    </div>`;
+  });
+
+  html += `<button class="complete-btn ${completed ? 'done' : ''}" onclick="markComplete(${weekIdx}, ${dayIdx})">
+    ${completed ? '✓ COMPLETED — TAP TO UNDO' : 'MARK AS COMPLETE'}
+  </button>`;
+
+  document.getElementById('workout-detail-content').innerHTML = html;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('workout-overlay').style.display = 'block';
+  document.getElementById('workout-overlay').classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function closeWorkout() {
+  document.getElementById('workout-overlay').style.display = 'none';
+  document.getElementById(`page-${currentPage}`).classList.add('active');
+  renderPage(currentPage);
+}
+
+function markComplete(weekIdx, dayIdx) {
+  toggleComplete(weekIdx, dayIdx);
+  showWorkout(weekIdx, dayIdx);
+}
+
+// ═══════════════════════════════════════════
+//  PROGRAM PAGE
+// ═══════════════════════════════════════════
+function renderProgram() {
+  const sel = document.getElementById('phase-selector');
+  sel.innerHTML = PHASES.map((p, i) => `
+    <div class="phase-pill ${state.selectedPhase === i ? 'active' : ''}" onclick="selectPhase(${i})">
+      Phase ${p.id}: ${p.name}
+    </div>
+  `).join('');
+
+  renderPhaseContent();
+}
+
+function selectPhase(idx) {
+  state.selectedPhase = idx;
+  saveState();
+  renderProgram();
+}
+
+function renderPhaseContent() {
+  const phase = PHASES[state.selectedPhase];
+  const startWeek = [0, 6, 12, 18][state.selectedPhase];
+  const endWeek = [6, 12, 18, 21][state.selectedPhase];
+  const content = document.getElementById('program-content');
+
+  if (viewingWeek !== null && !viewingDay && viewingDay !== 0) {
+    renderWeekDetail(viewingWeek);
+    return;
+  }
+
+  let html = `<div style="font-size:13px;color:var(--text2);margin-bottom:16px">${phase.dates}</div>`;
+
+  for (let w = startWeek; w < endWeek; w++) {
+    const weekDays = ALL_WEEKS[w];
+    const completedCount = weekDays.filter((_, d) => isCompleted(w, d)).length;
+    const dayNames = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    const now = new Date();
+    const daysSinceStart = Math.floor((now - PROGRAM_START) / 86400000);
+    const currentWeek = Math.floor(daysSinceStart / 7);
+    const currentDay = daysSinceStart % 7;
+
+    html += `<div class="week-card" onclick="openWeek(${w})">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="week-title">Week ${w + 1}</div>
+        <div style="font-size:12px;color:var(--text2)">${completedCount}/7</div>
+      </div>
+      <div class="week-dates">${fmtDate(weekStartDate(w + 1))} — ${fmtDate(dayDate(w + 1, 6))}</div>
+      <div class="week-days">
+        ${dayNames.map((dn, i) => {
+          let cls = 'week-day-dot';
+          if (isCompleted(w, i)) cls += ' completed';
+          else if (w === currentWeek && i === currentDay) cls += ' today';
+          return `<div class="${cls}">${dn}</div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }
+
+  content.innerHTML = html;
+}
+
+function openWeek(weekIdx) {
+  viewingWeek = weekIdx;
+  const content = document.getElementById('program-content');
+  const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const weekDays = ALL_WEEKS[weekIdx];
+
+  let html = `<button class="back-btn" onclick="viewingWeek=null;renderPhaseContent()">← All Weeks</button>
+    <div style="font-size:18px;font-weight:800;margin-bottom:4px">Week ${weekIdx + 1}</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px">${fmtDate(weekStartDate(weekIdx + 1))} — ${fmtDate(dayDate(weekIdx + 1, 6))}</div>
+  `;
+
+  weekDays.forEach((day, i) => {
+    const completed = isCompleted(weekIdx, i);
+    html += `<div class="day-row" onclick="showWorkout(${weekIdx}, ${i})">
+      <div class="day-num ${completed ? 'completed' : ''}">${dayNames[i][0]}</div>
+      <div class="day-info">
+        <div class="day-name">${dayNames[i]}</div>
+        <div class="day-desc">${day.title}</div>
+      </div>
+      <span class="badge badge-${day.badge}" style="flex-shrink:0">${day.type}</span>
+      ${completed ? '<div class="day-check">✓</div>' : ''}
+    </div>`;
+  });
+
+  content.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════
+//  GUIDE PAGE
+// ═══════════════════════════════════════════
+function renderGuide() {
+  const list = document.getElementById('guide-list');
+  const detail = document.getElementById('guide-detail');
+
+  if (detail.style.display === 'block') return;
+
+  list.style.display = 'block';
+  list.innerHTML = GUIDES.map((g, i) => `
+    <div class="guide-card" onclick="openGuide(${i})">
+      <div class="guide-card-icon">${g.icon}</div>
+      <div class="guide-card-title">${g.title}</div>
+      <div class="guide-card-desc">${g.desc}</div>
+    </div>
+  `).join('');
+}
+
+function openGuide(idx) {
+  const g = GUIDES[idx];
+  document.getElementById('guide-list').style.display = 'none';
+  const detail = document.getElementById('guide-detail');
+  detail.style.display = 'block';
+  detail.innerHTML = `
+    <button class="back-btn" onclick="closeGuide()">← All Guides</button>
+    <div style="font-size:20px;font-weight:800;margin-bottom:16px">${g.title}</div>
+    <div class="guide-content">${g.content}</div>
+  `;
+  window.scrollTo(0, 0);
+}
+
+function closeGuide() {
+  document.getElementById('guide-list').style.display = 'block';
+  document.getElementById('guide-detail').style.display = 'none';
+}
+
+// ═══════════════════════════════════════════
+//  PROGRESS PAGE
+// ═══════════════════════════════════════════
+function renderProgress() {
+  const totalDays = 21 * 7;
+  const completedDays = Object.keys(state.completed).filter(k => state.completed[k]).length;
+  const pct = Math.round((completedDays / totalDays) * 100);
+  const circumference = 2 * Math.PI * 65;
+  const offset = circumference - (pct / 100) * circumference;
+
+  // Stats
+  const now = new Date();
+  const daysSinceStart = Math.max(0, Math.floor((now - PROGRAM_START) / 86400000));
+  const currentWeek = Math.min(21, Math.floor(daysSinceStart / 7) + 1);
+  const streakDays = calculateStreak();
+
+  const benchmarks = [
+    { key: 'run2k', label: '2km Run Time Trial' },
+    { key: 'row1k', label: '1000m Row Time' },
+    { key: 'sledPush', label: 'Sled Push 50m @ Race Weight' },
+    { key: 'sledPull', label: 'Sled Pull 50m @ Race Weight' },
+    { key: 'wallBalls', label: 'Max Unbroken Wall Balls' },
+    { key: 'simTotal', label: 'Full HYROX Sim — Total Time' },
+  ];
+
+  document.getElementById('progress-content').innerHTML = `
+    <div class="progress-ring">
+      <div class="progress-circle">
+        <svg viewBox="0 0 140 140" width="160" height="160">
+          <circle class="bg" cx="70" cy="70" r="65" fill="none" stroke-width="8"/>
+          <circle class="fill" cx="70" cy="70" r="65" fill="none" stroke-width="8"
+            stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"/>
+        </svg>
+        <div class="progress-pct">${pct}%</div>
+      </div>
+      <div class="progress-label">${completedDays} of ${totalDays} sessions completed</div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-num">${currentWeek}</div><div class="stat-label">Current Week</div></div>
+      <div class="stat-card"><div class="stat-num">${streakDays}</div><div class="stat-label">Day Streak</div></div>
+      <div class="stat-card"><div class="stat-num">${Math.max(0, Math.floor((RACE_DATE - now) / 86400000))}</div><div class="stat-label">Days to Race</div></div>
+      <div class="stat-card"><div class="stat-num">${completedDays}</div><div class="stat-label">Workouts Done</div></div>
+    </div>
+
+    <div class="section-title" style="font-size:16px">Benchmark Tracking</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Track at end of Phase 1, mid Phase 3, and race week</div>
+
+    ${benchmarks.map(b => {
+      const vals = state.benchmarks[b.key] || {};
+      return `<div class="benchmark-card">
+        <div class="benchmark-title">${b.label}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+          <div>
+            <div style="font-size:10px;color:var(--text2);margin-bottom:4px">Week 6/7</div>
+            <input class="benchmark-input" placeholder="—" value="${vals.p1 || ''}"
+              onchange="saveBenchmark('${b.key}','p1',this.value)">
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--text2);margin-bottom:4px">Week 16</div>
+            <input class="benchmark-input" placeholder="—" value="${vals.p3 || ''}"
+              onchange="saveBenchmark('${b.key}','p3',this.value)">
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--text2);margin-bottom:4px">Week 19</div>
+            <input class="benchmark-input" placeholder="—" value="${vals.p4 || ''}"
+              onchange="saveBenchmark('${b.key}','p4',this.value)">
+          </div>
+        </div>
+      </div>`;
+    }).join('')}
+  `;
+}
+
+function saveBenchmark(key, phase, value) {
+  if (!state.benchmarks[key]) state.benchmarks[key] = {};
+  state.benchmarks[key][phase] = value;
+  saveState();
+}
+
+function calculateStreak() {
+  const now = new Date();
+  let streak = 0;
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const daysSinceStart = Math.floor((d - PROGRAM_START) / 86400000);
+    if (daysSinceStart < 0) break;
+    const w = Math.floor(daysSinceStart / 7);
+    const day = daysSinceStart % 7;
+    if (w >= 21) continue;
+    if (isCompleted(w, day)) streak++;
+    else if (i > 0) break;
+  }
+  return streak;
+}
+
+// ═══════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════
+renderToday();
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
