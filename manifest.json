@@ -2,7 +2,7 @@
   "name": "HYROX Cairo Training",
   "short_name": "HYROX Cairo",
   "description": "21-Week Race-Ready Training Program for HYROX Cairo 2026",
-  "start_url": "/",
+  "start_url": "/hyrox-cairo-app/",
   "display": "standalone",
   "background_color": "#0a0a0a",
   "theme_color": "#ff4d00",

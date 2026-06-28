@@ -1,5 +1,5 @@
 const CACHE_NAME = 'hyrox-cairo-v1';
-const ASSETS = ['/', '/index.html', '/manifest.json'];
+const ASSETS = ['/hyrox-cairo-app/', '/hyrox-cairo-app/index.html', '/hyrox-cairo-app/manifest.json'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)));
