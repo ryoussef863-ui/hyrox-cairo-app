@@ -211,8 +211,11 @@ const QUOTES = [
 function weekStart(w){const d=new Date(PROGRAM_START);d.setDate(d.getDate()+(w-1)*7);return d}
 function dayDate(w,di){const d=weekStart(w);d.setDate(d.getDate()+di);return d}
 function fmt(d){return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}
-const DAYS=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
-const DAYS_S=['M','T','W','T','F','S','S'];
+// Day names derived from actual calendar (PROGRAM_START = Tue Jul 7)
+function dayName(di){return dayDate(1,di).toLocaleDateString('en-US',{weekday:'long'});}
+function dayNameShort(di){return dayDate(1,di).toLocaleDateString('en-US',{weekday:'narrow'});}
+// Keep DAYS_S as a function too for the week dots
+const DAYS_S_FN=(di)=>dayNameShort(di);
 
 // ═══ STATE ═══
 const SK='hyrox_v3';
@@ -751,7 +754,7 @@ function renderToday(){
         <div class="phase-tag">PHASE ${phaseIdx+1} — WEEK ${cw+1}</div>
         <span class="badge badge-${workout.badge}">${workout.type}</span>
       </div>
-      <div class="today-day">${DAYS[cd]} — ${workout.title}</div>
+      <div class="today-day">${dayName(cd)} — ${workout.title}</div>
       <div class="today-type">${fmt(dayDate(cw+1,cd))}</div>
       <div style="margin-top:10px;font-size:13px;color:var(--text2)">${workout.blocks.slice(0,2).map(b=>b.ex[0]).join('<br>')}</div>
       <div style="margin-top:8px;font-size:12px;color:var(--orange);font-weight:600">Tap to see full workout →</div>
@@ -762,7 +765,7 @@ function renderToday(){
       html+=`<div style="font-size:11px;color:var(--text2);font-weight:700;margin:10px 0 6px;text-transform:uppercase;letter-spacing:1px">Tomorrow</div>
         <div class="today-card" onclick="showWorkout(${cw},${cd+1})" style="opacity:.65">
           <div style="display:flex;justify-content:space-between;align-items:center">
-            <div class="today-day" style="font-size:15px">${DAYS[cd+1]} — ${nw.title}</div>
+            <div class="today-day" style="font-size:15px">${dayName(cd+1)} — ${nw.title}</div>
             <span class="badge badge-${nw.badge}">${nw.type}</span>
           </div>
           <div style="font-size:12px;color:var(--orange);margin-top:6px">${nw.focus.substring(0,80)}...</div>
@@ -783,7 +786,7 @@ function showWorkout(wi,di){
         <div class="phase-tag">PHASE ${phaseIdx+1} — WEEK ${wi+1}</div>
         <span class="badge badge-${w.badge}">${w.type}</span>
       </div>
-      <div style="font-size:20px;font-weight:800;margin-bottom:3px">${DAYS[di]}</div>
+      <div style="font-size:20px;font-weight:800;margin-bottom:3px">${dayName(di)}</div>
       <div style="font-size:15px;font-weight:600;color:var(--text2)">${w.title}</div>
       <div style="font-size:12px;color:var(--text2);margin-top:3px">${fmt(dayDate(wi+1,di))}</div>
     </div>
@@ -825,9 +828,9 @@ function renderProgram(){
     ALL_WEEKS[wi].forEach((d,i)=>{
       const comp=isDone(wi,i);
       html+=`<div class="day-row" onclick="showWorkout(${wi},${i})">
-        <div class="day-num ${comp?'completed':''}">${DAYS_S[i]}</div>
+        <div class="day-num ${comp?'completed':''}">${dayNameShort(i)}</div>
         <div class="day-info">
-          <div class="day-name">${DAYS[i]}</div>
+          <div class="day-name">${dayName(i)}</div>
           <div class="day-focus">${d.focus||d.title}</div>
         </div>
         <span class="badge badge-${d.badge}" style="flex-shrink:0">${d.type}</span>
@@ -847,11 +850,11 @@ function renderProgram(){
           <div style="font-size:11px;color:var(--text2)">${dones}/7</div>
         </div>
         <div class="week-dates">${fmt(weekStart(w+1))} — ${fmt(dayDate(w+1,6))}</div>
-        <div class="week-days">${DAYS_S.map((dn,i)=>{
+        <div class="week-days">${Array.from({length:7},(_,i)=>{
           let cls='week-day-dot';
           if(isDone(w,i))cls+=' completed';
           else if(w===cw&&i===cd)cls+=' today';
-          return`<div class="${cls}">${dn}</div>`;
+          return`<div class="${cls}">${dayNameShort(i)}</div>`;
         }).join('')}</div>
         <div class="phase-progress-bar"><div class="phase-progress-fill" style="width:${(dones/7*100).toFixed(0)}%"></div></div>
       </div>`;
