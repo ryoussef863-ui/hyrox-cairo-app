@@ -218,9 +218,16 @@ function dayNameShort(di){return dayDate(1,di).toLocaleDateString('en-US',{weekd
 const DAYS_S_FN=(di)=>dayNameShort(di);
 
 // ═══ STATE ═══
-const SK='hyrox_v3';
+const SK='hyrox_v4';
 let S=loadS();
-function loadS(){try{return JSON.parse(localStorage.getItem(SK))||{done:{},bench:{},phase:0}}catch{return{done:{},bench:{},phase:0}}}
+function loadS(){
+  try{
+    const raw=localStorage.getItem(SK);
+    // w0d0 = Tue Jul 7 = Sherif Phase 1 Day 1 — already completed
+    if(!raw) return{done:{'w0d0':true},bench:{},phase:0};
+    return JSON.parse(raw)||{done:{},bench:{},phase:0};
+  }catch{return{done:{'w0d0':true},bench:{},phase:0}}
+}
 function saveS(){localStorage.setItem(SK,JSON.stringify(S))}
 function dk(w,d){return`w${w}d${d}`}
 function isDone(w,d){return!!S.done[dk(w,d)]}
@@ -228,341 +235,735 @@ function toggle(w,d){S.done[dk(w,d)]=!S.done[dk(w,d)];saveS()}
 
 // ═══════════════════════════════════════════════════════
 // FULL 19-WEEK INTEGRATED PROGRAM
-// ═══════════════════════════════════════════════════════
-// Each week = 7 days [Mon..Sun]
-// Each day: {title, type, badge, focus, blocks:[{name, ex:[str]}]}
+// Week structure (Tue → Mon):
+//   0=Tue  1=Wed  2=Thu  3=Fri  4=Sat  5=Sun  6=Mon
+// Day logic: Lower Body | Run | Upper Body | Posterior Chain
+//            | HYROX Stations | Athleticism | Rest
 // ═══════════════════════════════════════════════════════
 
 function W(title,type,badge,focus,blocks){return{title,type,badge,focus,blocks}}
 function B(name,...ex){return{name,ex}}
 
-// ──────────── PHASE 1: WEEKS 1-6 ────────────
-// Foundation & Control + HYROX Base
+// ─── PHASE 1: WEEKS 1–6 — ATHLETIC FOUNDATION + HYROX BASE ───────────────
+// Goal: build unilateral strength, lactate threshold, and station technique.
+// Sherif Phase 1 Day 1-4 form the core; HYROX sessions added on Sat.
 
-function p1week(wn, sqRPE, slPct, vo1, vo2, runMin, carry, hybridEx){
+function p1week(sqRPE, runSets, runMin, runRest, hyroxBlocks, carryM, dlRPE){
 return[
-W("Lower Body Strength + Sled Push Skill","strength","strength",
-  "Build unilateral lower body control and learn sled mechanics under a fresh body.",
-  [B("Warm-Up (3 rounds, 1min rest)","Cross Connect Fwd-to-Reverse Lunge — 5 reps/leg","Hanging Knee Raises — 12 reps","Alternating Bent-Over Row — 10 reps/arm"),
-   B("Strength — Superset (3 rounds, 2min rest)",`Barbell Split Squat — 5 reps/leg @ RPE${sqRPE} (as heavy as possible with control)`,`Jumping Split Squats — 5 reps/leg (explosive, land soft)`),
-   B("HYROX Skill — Sled Push",`5×20m @ ~${slPct}% race weight | Rest 90s | Low shin angle, arms locked, short choppy steps`),
-   B("Accessories (3 rounds, 90s rest)","DB Bench Press — 15 reps","Lat Pulldown — 15 reps","Leg Extension — 15 reps")]),
 
-W("Upper Body Power + Sprint Agility + SkiErg","strength","strength",
-  "Build pressing explosiveness, sprint acceleration, and SkiErg efficiency.",
-  [B("Warm-Up — Extensive Plyometrics (sub-maximal)","Linear Pogos — 2×20 reps","Side-to-Side Pogos — 2×10 reps/leg","Alternating Pogos — 2×10 reps/leg","Single-Leg Hops in Place — 2×15 reps/leg"),
-   B("Strength — Complex (3 rounds, 2min rest)","Barbell Bench Press — 5 reps (heavy)","Bench Plyometric Push-Ups — 5 reps (same bar)","Medicine Ball Chest Pass — 8 reps","Banded Pull Apart — 12 reps"),
-   B("Conditioning — Shuttle Sprints (2 rounds)","5m, 10m, 15m back and forth × 5 | Rest 30s between efforts | Rest 2-3min between rounds"),
-   B("HYROX Skill — SkiErg","4×500m @ controlled/Threshold | Focus: hip-hinge drive, not just arms | Full recovery 90s"),
-   B("Accessories (3 rounds, 90s rest)","RFE Split Squat Jumps — 15 reps (light)","Incline Bench Press — 15 reps","Single-Arm Low Cable Row — 15 reps/arm")]),
+// 0: Tue — LOWER BODY STRENGTH
+W("Lower Body — Strength & Power","strength","strength",
+  "Build unilateral leg strength and explosive hip power. Every rep here transfers to faster sled splits and stronger wall balls.",
+  [B("Warm-Up — 3 rounds | 90s rest",
+      "Cross Connect Forward-to-Reverse Lunge — 5/leg (controlled, full range)",
+      "Hanging Knee Raises — 12 reps (core braced, no swing)",
+      "Alternating Bent-Over Row — 10/arm (neutral spine, hinge position)"),
+   B(`A — Superset × 3 sets | 2-3min rest between sets`,
+      `Barbell Split Squat — 5/leg @ RPE ${sqRPE} | 2s hold at bottom | Build load each week`,
+      "Jumping Split Squats — 5/leg | Explosive drive, soft landing, immediate reset"),
+   B("B — 3 sets × 10 | 90s rest",
+      "Leg Press — 10 reps @ moderate | 3-second eccentric (quad endurance = better wall balls)",
+      "Walking DB Lunges — 10/leg @ RPE 6"),
+   B("C — 3 × 15 paired | 60s rest",
+      "Leg Extension — 15 reps",
+      "Hamstring Curl — 15 reps")]),
 
-W("Posterior Chain + Threshold Running","run","run",
-  "Develop the hip hinge power and aerobic engine that fuels every HYROX run.",
-  [B("Warm-Up (3 rounds, 1min rest)","Hip Bridge Long Lever — 10 reps","Single-Leg RDL — 10 reps/leg","Straight Arm Lat Pulls — 10 reps"),
-   B("Strength — Superset (3 rounds, 2min rest)",`Deadlift w/ 2s Pause Below Knee — 5 reps (heavy) | Rest 2-3min`,`Kettlebell Swings — 8 reps (explosive hip snap)`),
-   B("Running","${vo1}×${vo2}min @ Threshold | ${runMin} jog recovery".replace('${vo1}',vo1).replace('${vo2}',vo2).replace('${runMin}',runMin)),
-   B("Accessories 1 (3 rounds, 90s rest)","Hamstring Curl — 15 reps","Alternating Floor Press — 15 reps/arm","Oblique Cable Crunch — 15 reps/side"),
-   B("Accessories 2 (3 rounds, 90s rest)","DB Hammer Curl — 15 reps","Triceps Pushdown — 15 reps")]),
+// 1: Wed — RUNNING ONLY
+W("Running — Threshold Intervals","run","run",
+  "Raise lactate threshold — the single biggest predictor of HYROX run pace. Nothing else today. Protect the legs.",
+  [B("Warm-Up",
+      "8min easy jog (Zone 2 — fully conversational)",
+      "4×60m progressive strides: 50→60→70→80% effort | Walk-back recovery between each"),
+   B(`Main Set — ${runSets} × ${runMin}min @ Threshold (RPE 6-7)`,
+      "Slightly uncomfortable — short phrases possible, full sentences not",
+      `${runRest}min easy jog recovery between reps`,
+      "Pacing rule: Rep 1 and last rep at identical effort — this discipline wins HYROX"),
+   B("Cool-Down",
+      "5min easy jog → 2min walk",
+      "Calf stretch 60s/side | Hip flexor lunge stretch 60s/side | Standing quad 45s/side")]),
 
-W("HYROX Hybrid Circuit","hybrid","hybrid",
-  "Practice moving between stations without stopping — this is what race day feels like.",
-  [B("Warm-Up","10min easy movement + dynamic mobility"),
-   B("Main Set",hybridEx),
-   B("Core","Weighted Plank — 3×30-40s | Rest 45s")]),
+// 2: Thu — UPPER BODY STRENGTH + EXPLOSIVE POWER
+W("Upper Body — Strength & Explosive Power","strength","strength",
+  "Build pressing force and explosive power transfer. Carries directly into SkiErg drive, sled push authority, and wall ball output.",
+  [B("Warm-Up — Plyometric Prep (sub-maximal intensity)",
+      "Linear Pogos — 2×20 (fast ground contact, stiff ankles)",
+      "Side-to-Side Pogos — 2×10/leg",
+      "Alternating Pogos — 2×10/leg",
+      "Single-Leg Hops — 2×15/leg (build reactive stiffness, stay tall)"),
+   B("A — Strength Complex × 3 rounds | 2min rest | All 4 movements consecutive, no rest within complex",
+      "Barbell Bench Press — 5 reps (heavy — build load each week)",
+      "Bench Plyometric Push-Ups — 5 reps (explosive off bar, absorb landing, no pause)",
+      "Medicine Ball Chest Pass — 8 reps (maximal acceleration, full arm extension)",
+      "Banded Pull-Aparts — 12 reps (scapular retraction — resets upper back between pressing)"),
+   B("B — 3 × 8 | 90s rest",
+      "Weighted Pull-Up or Lat Pulldown — 8 reps @ RPE 7",
+      "Single-Arm DB Row — 10/arm @ RPE 7"),
+   B("C — 3 × 12-15 | 60s rest",
+      "Incline DB Press — 12 reps",
+      "Face Pulls — 15 reps (rear delt + rotator cuff health)",
+      "RFE Split Squat Jumps (light, 30-40% BW) — 15/leg (keep legs conditioned)")]),
 
+// 3: Fri — POSTERIOR CHAIN
+W("Posterior Chain — Hip Hinge Power","strength","strength",
+  "The deadlift builds the engine. KB swings teach explosive hip extension — the exact movement driving every sled push step.",
+  [B("Warm-Up — 3 rounds",
+      "Hip Bridge Long Lever — 10 reps (extended leg for hamstring load)",
+      "Single-Leg RDL bodyweight — 10/leg (feel the hamstring, not the lower back)",
+      "Straight Arm Lat Pull (band/cable) — 10 reps (lat engagement pattern for deadlift)"),
+   B(`A — Superset × 3 sets | 2-3min rest between sets`,
+      `Deadlift w/ 2s Pause Below Knee — 5 reps @ RPE ${dlRPE} | Lat tension before pulling, bar stays close`,
+      "Kettlebell Swings — 10 reps | Violent hip snap — this is a hinge, not a squat"),
+   B("B — Accessories Circuit × 3 | 90s rest",
+      "Hamstring Curl — 15 reps (slow eccentric — 3s down)",
+      "Alternating Floor Press — 15/arm",
+      "Oblique Cable Crunch — 15/side"),
+   B("C — 3 × 15 | 60s rest",
+      "DB Hammer Curl — 15 reps",
+      "Triceps Pushdown — 15 reps"),
+   B("Optional — if energy allows",
+      "20min easy bike, ski, or row @ Zone 2 — aerobic maintenance")]),
+
+// 4: Sat — HYROX STATION SKILLS
+W("HYROX — Station Skills & Conditioning","hybrid","hybrid",
+  "Train the machines. Build station-specific capacity. Race outcome is decided here, weeks before race day.",
+  [B("Warm-Up",
+      "8min easy SkiErg or Row (Zone 2)",
+      "Hip CARs — 8/side | Shoulder CARs — 8/side | 10 Wall Ball air squats"),
+   ...hyroxBlocks,
+   B("Cool-Down",
+      "5min light Row — flush the legs",
+      "10min mobility: hip flexors, thoracic rotation, shoulders")]),
+
+// 5: Sun — SPEED + AGILITY + STABILITY
 W("Athleticism — Speed, Agility & Stability","athlete","athlete",
-  "Sprint mechanics, agility patterns, and the hip/shoulder stability that makes you injury-proof.",
-  [B("Warm-Up — Sprint Mechanics (3 rounds)","A-Skip — 20 reps","Side Shuffle — 30 sec","Backward Run — 30 sec"),
-   B("Speed Conditioning (4 rounds, 2min rest)","Run Drill: Sprint 5m, 10m, 15m out and back (one after the other) — maintain pace across all rounds"),
-   B("Hip Stability (3 rounds, 90s rest)",`Farmers Carry — 4×${carry}m @ ~60% race weight/hand | Tall posture`,"Copenhagen Raises — 15 reps","KB Goblet Marches — 15 reps","Lateral Band Walk — 30 sec"),
-   B("Shoulder Circuit (3 rounds, 2min rest)","Shoulder Press — 15 reps","DB Side Raises — 15 reps","Rear Delt Flies — 15 reps")]),
+  "Sprint mechanics, reactive footwork, loaded carries, and hip/shoulder stability — the athletic base every station demands.",
+  [B("Warm-Up — Sprint Mechanics Drills × 3 rounds",
+      "A-Skip — 20 reps (exaggerated knee drive, active arm swing, stay tall)",
+      "Side Shuffle — 30s (low hips, reactive, don't cross feet)",
+      "Backward Run — 30s (opens hips, builds ankle stiffness)"),
+   B(`Loaded Carry — 4 × ${carryM}m | 90s rest`,
+      `Farmers Carry — ${carryM}m @ ~60% race weight/hand`,
+      "Tall spine, packed shoulders, braced core — no lateral lean"),
+   B("Hip Stability Circuit — 3 rounds | 90s rest",
+      "Copenhagen Raises — 15 reps (full range, both legs loaded)",
+      "KB Goblet Marches — 15/leg (upright, deliberate, no lean)",
+      "Lateral Band Walk — 30s/direction"),
+   B("Shoulder Circuit — 3 rounds | 90s rest",
+      "Shoulder Press — 15 reps @ RPE 6",
+      "DB Side Raises — 15 reps (controlled eccentric, pause at top)",
+      "Rear Delt Flies — 15 reps (pinch at top, control the descent)")]),
 
-W("Full Mobility & Recovery","mobility","mobility",
-  "Restore, lengthen, and prepare your body for another week of hard training.",
-  [B("Full Mobility Flow (30-40min)","Couch Stretch — 60-90s/side","90/90 Hip Switches — 10 reps","Deep Goblet Squat Hold — 2min total","Ankle Dorsiflexion (knee-to-wall) — 2×10/side","Open Book Rotations — 8/side","Thread the Needle — 8/side","Banded Shoulder Dislocates — 15 reps","Wall Slides — 10 reps","Standing Forward Fold — 90s","Foam Roll: quads, glutes, calves, lats — 1min each"),
-   B("Optional","20-30min easy walk")]),
-
+// 6: Mon — REST
 W("Rest Day","rest","rest",
-  "Complete rest is part of the program. This is when adaptation happens.",
-  [B("Session","Full rest. Light walking only if desired.")])
+  "Complete rest is training. Strength, speed, and endurance adaptation happens here. Protect this day.",
+  [B("Session","Full rest. Light walking only. No gym, no extra cardio.")])
+
 ]}
 
-const W1=p1week(1,"6",50,"3","5","3min",40,"4 rounds: 250m SkiErg + 10 Burpee Broad Jumps + 250m Row | Rest 90s | Moderate effort");
-const W2=p1week(2,"6",55,"4","5","2:30",40,"EMOM 12min: odd min 10 Wall Balls (light), even min 200m Row | Technique focus");
-const W3=p1week(3,"7",60,"4","6","2min",40,"4 rounds: 200m SkiErg + 15m Sandbag Lunges (light) + 200m Row | Rest 90s");
-const W4=p1week(4,"7",60,"4","6","2min",50,"5 rounds: 250m Row + 8 Burpee Broad Jumps + 12 Wall Balls (light) | Rest 90s");
-const W5=p1week(5,"7",65,"5","6","90s",50,"4 rounds: 300m SkiErg + 20m Farmers Carry (moderate) + 300m Row | Rest 2min | Build toward race effort");
-const W6=p1week(6,"7-8",70,"5","6","90s",50,"Mini-simulation: 500m SkiErg + 15 Wall Balls + 25m Sled Push (light) + 500m Row + 20m Burpee Broad Jump | Continuous, moderate pace");
+// Phase 1 HYROX blocks — week-specific (Sat sessions)
+const hx1=[
+  B("A — SkiErg Skill × 4 × 500m | Rest 90s",
+    "Easy effort (RPE 5) — technique only, not fitness",
+    "Hip-hinge drive from lats — if arms pull alone, you'll gas in 300m",
+    "Stroke rate: 28-32spm | Slight knee bend | Full hip extension at bottom"),
+  B("B — Row Skill × 4 × 500m | Rest 90s",
+    "Easy effort (RPE 5) — technique only",
+    "Drive sequence: legs → hips → arms | Recovery: arms → hips → legs",
+    "Damper 3-5 | Target 2:00-2:10/500m — efficiency over speed this week"),
+  B("C — Wall Ball Skill × 3 × 15 | Rest 60s",
+    "Race weight (9kg M / 6kg W) — perfect reps only, no misses",
+    "Full squat depth (hip below knee) | Explosive leg drive — don't arm-throw")
+];
 
-// Phase 1 benchmark override for W6 Sun
-W6[6]={title:"Rest + Phase 1 Benchmark",type:"rest",badge:"rest",
-  focus:"Test your baseline — this data will show you exactly how much you've improved by race day.",
-  blocks:[B("Phase 1 Benchmark Test (do first thing Monday Week 7 or today if fresh)",
-    "1. 2km time trial run — record time",
-    "2. Max unbroken wall balls at race weight — record reps",
-    "3. Sled push 50m at race weight — record time",
-    "4. 1000m row — record time",
-    "5. Max broad jumps in 30 sec — record reps (new athletic marker)"),
-  B("Then: Full rest")]};
+const hx2=[
+  B("A — Station Circuit × 4 rounds | Rest 90s",
+    "250m SkiErg → 15 Wall Balls (race weight) → 250m Row",
+    "Moderate effort (RPE 6) — technique-first, controlled pace",
+    "After each round: note how your breathing feels — this is early compromised-condition training")
+];
 
-// ──────────── PHASE 2: WEEKS 7-12 ────────────
-function p2week(sqRPE, slPct, vo2reps, pullR, pullRPE, slPullPct, runMin, hybridEx, agileEx){
+const hx3=[
+  B("A — Sled Push Skill × 4 × 20m | Full 2min recovery",
+    "~55-60% race weight | Technique only — not conditioning yet",
+    "Cue: arms fully locked, shin angle <45°, short choppy steps, drive through whole foot",
+    "Reset completely between reps — every rep must be identical quality"),
+  B("B — Station Circuit × 4 rounds | Rest 90s",
+    "250m Row → 8 Burpee Broad Jumps → 250m SkiErg",
+    "Moderate-high effort (RPE 6-7) — move with intent")
+];
+
+const hx4=[
+  B("A — Sled Push × 4 × 20m | Rest 90s",
+    "~60-65% race weight | Shorter rest introduces conditioning element",
+    "Maintain identical technique under fatigue — that's the entire point of this set"),
+  B("B — EMOM 12min (alternate each minute)",
+    "Odd minutes: 12 Wall Balls @ race weight",
+    "Even minutes: 8 Burpee Broad Jumps",
+    "Target: 10-15s rest at end of each minute — this trains sustainable station pacing")
+];
+
+const hx5=[
+  B("A — Sled Push × 4 × 25m | Rest 90s",
+    "~65-70% race weight | Longer distance — maintain form through final 5m",
+    "Cue: 'push the floor away' — don't let the sled dictate your rhythm"),
+  B("B — Station Circuit × 4 rounds | Rest 2min",
+    "300m SkiErg → 15 Wall Balls (race weight) → 300m Row",
+    "RPE 7-8 — approach race effort | Compare pace to Week 2 same circuit",
+    "Improvement should be visible — note your split times")
+];
+
+const hx6=[
+  B("Phase 1 Mini-Simulation — CONTINUOUS | RPE 7-8",
+    "500m SkiErg → 15 Wall Balls (race weight) → 25m Sled Push (~70%) → 500m Row → 20m Burpee Broad Jump",
+    "No rest between stations — controlled, strong, race-pace effort. Not an all-out sprint.",
+    "Record every split. This is your Phase 1 baseline — you will beat this by Week 16.")
+];
+
+const W1=p1week("6",3,8,"3:00",hx1,40,"6");
+const W2=p1week("6-7",4,7,"2:30",hx2,40,"6");
+const W3=p1week("7",4,8,"2:30",hx3,45,"6-7");
+const W4=p1week("7",3,12,"2:00",hx4,45,"7");
+const W5=p1week("7-8",4,10,"2:00",hx5,50,"7");
+const W6=p1week("7-8",5,8,"2:00",hx6,50,"7-8");
+
+// W6 Mon — Phase 1 Benchmark Test (replaces rest day)
+W6[6]={title:"Phase 1 Benchmark Test",type:"rest",badge:"rest",
+  focus:"Test your baseline — these numbers will show you exactly how much you've grown by Week 16.",
+  blocks:[
+    B("Instructions","Do this fresh — not after training. First thing in the morning ideally.","Record every number. Screenshot the results."),
+    B("1. 2km Time Trial Run","Warm up 5min easy, then run 2km at maximal sustainable effort","Record time — this is your aerobic baseline"),
+    B("2. Max Unbroken Wall Balls","Race weight | Start fresh | Count reps until you break","Record number — tracks muscular endurance under fatigue"),
+    B("3. Sled Push 50m — For Time","100% race weight | One continuous effort","Record time and any rest taken"),
+    B("4. 1000m Row — For Time","After 5min rest | All-out effort","Record time and average split"),
+    B("5. Broad Jump — Max Distance","3 attempts | Record the best one in cm/m","Athletic power baseline — compare to Week 12 and 16")]};
+
+// ─── PHASE 2: WEEKS 7–12 — POWER & ENGINE BUILD ─────────────────────────
+// Goal: heavier loads, VO2max running, race-weight HYROX circuits.
+// Sherif Phase 2 progressions (Reverse Lunge, KB Single-Leg DL) drive strength.
+
+function p2week(lbRPE, runSets, runMin, hyroxBlocks, carryM, dlRPE, agileBlock){
 return[
-W("Heavy Lower + Sled Push Power","strength","strength",
-  "Chase new strength PRs. A stronger squat = a faster sled. Full recovery between sets.",
-  [B("Warm-Up (3 rounds, 1min rest)","Cross Connect Fwd-to-Reverse Lunge — 5 reps/leg","Hanging Knee Raises — 12 reps","Alternating Bent-Over Row — 10 reps/arm"),
-   B("Strength (4 rounds, 2-3min rest)",`Reverse Lunge (Barbell) — 5 reps/leg @ RPE${sqRPE} (heavier than Phase 1)`,`Weighted Jumping Split Squats — 5 reps/leg (add load progressively)`),
-   B("Sled Push Power Intervals",`6×25m @ ~${slPct}% race weight | Rest 90-120s | Full recovery — power not conditioning`),
-   B("Accessories (3-4 rounds, 90s rest)","DB Bench Press — 15 reps","Lat Pulldown — 15 reps","Leg Extension — 15 reps")]),
 
-W("Upper Body Max Strength + Agility","strength","strength",
-  "Maximum pressing force + agility under fatigue. Shoulder that sled with authority.",
-  [B("Warm-Up — Extensive Plyometrics (sub-maximal)","Linear Pogos — 2×20 reps","Side-to-Side Pogos — 2×20 reps/leg","Alternating Pogos — 2×20 reps/leg","Single-Leg Hops in Place — 2×15 reps/leg"),
-   B("Strength — Complex (3 rounds, 2min rest)",`Barbell Bench Press — 3 reps (near max — heavier than Phase 1)`,"Bench Plyometric Push-Ups — 5 reps","Medicine Ball Chest Pass — 8 reps","Banded Pull Apart — 12 reps"),
-   B("Preparation Block (5min, interval style)","Banded High Knees — 30s on / 30s off × 5"),
-   B("Conditioning (4 rounds, 2:30min rest)","Medium-to-High Pace Run — 5min | Consistent pacing across all rounds"),
-   B("Accessories (3 rounds, 90s rest)","RFE Split Squat Jumps (light) — 15 reps","Incline Bench Press — 15 reps","Single-Arm Cable Row — 15 reps/arm")]),
+// 0: Tue — HEAVY LOWER BODY
+W("Lower Body — Maximum Strength","strength","strength",
+  "New PRs this phase. A stronger reverse lunge means a more powerful sled. Chase the weight with complete control.",
+  [B("Warm-Up — 3 rounds | 90s rest",
+      "Cross Connect Forward-to-Reverse Lunge — 5/leg",
+      "Hanging Knee Raises — 12 reps",
+      "Alternating Bent-Over Row — 10/arm"),
+   B(`A — Superset × 4 sets | 2-3min rest`,
+      `Barbell Reverse Lunge — 5/leg @ RPE ${lbRPE} (heavier than Phase 1 split squat)`,
+      "Weighted Jumping Split Squats — 5/leg (add load — hold DBs or wear vest)"),
+   B("B — 4 × 10 | 90s rest",
+      "Leg Press — 10 reps @ moderate-heavy | 3-second eccentric",
+      "Leg Extension — 15 reps"),
+   B("C — 3 × 15 | 60s rest",
+      "Hamstring Curl — 15 reps",
+      "Walking DB Lunges — 10/leg @ RPE 6-7")]),
 
-W("VO2max Running + Posterior Chain","run","run",
-  "Raise your aerobic ceiling so race pace feels easier. Pair with posterior chain power.",
-  [B("Warm-Up (3 rounds, 1min rest)","Hip Bridge Long Lever — 10 reps","Single-Leg RDL — 10 reps/leg","Straight Arm Lat Pulls — 10 reps"),
-   B("Strength — Superset (4 rounds, 2min rest)",`Kettlebell Single-Leg Deadlift — 5 reps/leg (heavy, controlled)`,`Kettlebell Swings — 8 reps (explosive)`),
-   B("VO2max Intervals",`${vo2reps}×3min @ Hard/VO2 effort | 2min easy jog recovery`),
-   B("Accessories 1 (4 rounds, 90s rest)","Hamstring Curl — 15 reps","Alternating Floor Press — 15 reps/arm","Oblique Cable Crunch — 15 reps/side"),
-   B("Accessories 2 (3 rounds, 90s rest)","DB Biceps Curl — 15 reps","Triceps Pushdown — 15 reps"),
-   B("Cardio (optional)","Long Run — 4-6km easy Z2")]),
+// 1: Wed — VO2MAX RUNNING ONLY
+W("Running — VO2max Intervals","run","run",
+  "Raise your aerobic ceiling. VO2max work makes threshold feel easier — and race pace more sustainable for all 8km.",
+  [B("Warm-Up",
+      "10min easy jog (Zone 2)",
+      "6×60m strides at 80-90% effort | Full walk-back recovery between each"),
+   B(`Main Set — ${runSets} × ${runMin}min @ Hard Effort (RPE 8-9)`,
+      "Full sentences impossible — you're working hard",
+      "2min easy jog recovery between reps",
+      "Pacing: last rep as hard as the first — if not, you went out too fast"),
+   B("Cool-Down",
+      "10min easy jog — don't stop immediately after VO2 work",
+      "Full hip flexor, hamstring, and calf stretch")]),
 
-W("HYROX Engine Circuit","hybrid","hybrid",
-  "Increasing station loads at race weight. The body learns to switch modalities fast.",
-  [B("Warm-Up","10-12min easy movement + dynamic mobility"),
-   B("Main Set",hybridEx),
-   B("Core","Hanging Leg Raise — 3×12 | Rest 60s")]),
+// 2: Thu — UPPER BODY MAX STRENGTH
+W("Upper Body — Maximum Strength & Power","strength","strength",
+  "Heavier bench, more explosive push-ups. Pressing strength transfers directly into SkiErg power and sled push authority.",
+  [B("Warm-Up — Plyometric Prep (increased volume)",
+      "Linear Pogos — 2×20",
+      "Side-to-Side Pogos — 2×20/leg",
+      "Alternating Pogos — 2×20/leg",
+      "Single-Leg Hops — 2×15/leg"),
+   B("A — Strength Complex × 3 | 2min rest | All 4 movements back-to-back",
+      "Barbell Bench Press — 3 reps (near-max, 85-90% — heavier than Phase 1)",
+      "Bench Plyometric Push-Ups — 5 reps (maximal height off the bar)",
+      "Medicine Ball Chest Pass — 8 reps (maximal speed)",
+      "Banded Pull-Aparts — 12 reps"),
+   B("B — 3 × 8 | 90s rest",
+      "Weighted Pull-Up or Lat Pulldown — 8 reps @ RPE 8 (heavier than Phase 1)",
+      "Single-Arm Cable Row — 10/arm @ RPE 7-8"),
+   B("C — 3 × 12-15 | 60s rest",
+      "Incline DB Press — 12 reps @ RPE 7",
+      "Face Pulls — 15 reps",
+      "RFE Split Squat Jumps (light) — 15/leg")]),
 
-W("Athleticism — Agility + Hip & Shoulder Stability","athlete","athlete",
-  "Reactive footwork, hip drive, and shoulder control — the athletic qualities that carry you through all 8 stations.",
-  [B("Warm-Up — Sprint Mechanics (3 rounds)","A-Skip — 20 reps","Side Shuffle — 30 sec","Backward Run — 30 sec"),
-   B("Intensive Agility (2 rounds, 3min rest)",agileEx),
-   B("Hip Stability (4 rounds, 60s rest)","Weighted Copenhagen Raises — 15 reps","KB Goblet Marches — 15 reps","Lateral Band Walk — 30 sec"),
-   B("Shoulder Circuit (3 rounds, 90s rest)","Half Kneeling One-Arm Alt Press — 12 reps/side","DB Side Raises — 12-15 reps","Rear Delt Flies — 12-15 reps"),
-   B("Sled Pull Power",`6×25m @ ~${slPullPct}% race weight | Rest 90-120s | Full recovery`)]),
+// 3: Fri — POSTERIOR CHAIN (KB Single-Leg DL)
+W("Posterior Chain — Unilateral Hip Hinge","strength","strength",
+  "Single-leg deadlift builds unilateral posterior chain strength and lateral stability — directly reduces hip drop during fatigued HYROX running.",
+  [B("Warm-Up — 3 rounds",
+      "Hip Bridge Long Lever — 10 reps",
+      "Single-Leg RDL bodyweight — 10/leg",
+      "Straight Arm Lat Pull — 10 reps"),
+   B(`A — Superset × 4 sets | 2-3min rest`,
+      `KB Single-Leg Deadlift — 5/leg @ RPE ${dlRPE} | Heavy, controlled, no hip rotation`,
+      "KB Swings — 10 reps (explosive — this is the contrast movement)"),
+   B("B — Accessories Circuit × 4 | 90s rest",
+      "Hamstring Curl — 15 reps",
+      "Alternating Floor Press — 15/arm",
+      "Oblique Cable Crunch — 15/side"),
+   B("C — 3 × 15 | 60s rest",
+      "DB Biceps Curl — 15 reps",
+      "Triceps Pushdown — 15 reps"),
+   B("Optional Cardio",
+      "Long easy run — 4-6km @ Zone 2 | Conversational pace | Aerobic base maintenance")]),
 
-W("Full Mobility & Recovery","mobility","mobility",
-  "Active restoration. Your muscles adapt during rest — protect this day.",
-  [B("Full Mobility Flow (30-40min)","Couch Stretch — 60-90s/side","90/90 Hip Switches — 10 reps","Deep Goblet Squat Hold — 2min","Ankle Dorsiflexion — 2×10/side","Open Book Rotations — 8/side","Thread the Needle — 8/side","Banded Shoulder Dislocates — 15 reps","Foam Roll: quads, glutes, calves, lats — 1min each"),
-   B("Optional","Easy bike or swim — 20-30min, very low intensity")]),
+// 4: Sat — HYROX ENGINE CIRCUIT
+W("HYROX — Engine Circuit","hybrid","hybrid",
+  "Race-weight loads, higher volume, shorter rest. The body is learning to switch modalities under accumulating fatigue.",
+  [B("Warm-Up",
+      "10min easy SkiErg or Row (Zone 2)",
+      "Activation: 10 Wall Balls + 10 KB Swings + 10 Box Jumps (low) — wake everything up"),
+   ...hyroxBlocks,
+   B("Core Finisher",
+      "Hanging Leg Raise — 3 × 12 | Rest 60s | Slow and controlled")]),
 
+// 5: Sun — INTENSIVE AGILITY + STABILITY
+W("Athleticism — Intensive Agility & Stability","athlete","athlete",
+  "Higher-intensity sprint patterns under load. Athletic output in this state is what race day demands.",
+  [B("Warm-Up — Sprint Mechanics (3 rounds)",
+      "A-Skip — 20 reps",
+      "Side Shuffle — 30s",
+      "Backward Run — 30s"),
+   B("Intensive Agility — 2 rounds | 3min rest between rounds",
+      agileBlock),
+   B(`Loaded Carry — 4 × ${carryM}m | 90s rest`,
+      `Farmers Carry — ${carryM}m @ 65-70% race weight/hand (heavier than Phase 1)`),
+   B("Hip Stability Circuit — 4 rounds | 60s rest",
+      "Weighted Copenhagen Raises — 15 reps",
+      "KB Goblet Marches — 15/leg",
+      "Lateral Band Walk — 30s/direction"),
+   B("Shoulder Circuit — 3 rounds | 90s rest",
+      "Half Kneeling One-Arm Press — 12/arm",
+      "DB Side Raises — 12-15 reps (controlled eccentric)",
+      "Rear Delt Flies — 12-15 reps")]),
+
+// 6: Mon — REST
 W("Rest Day","rest","rest",
-  "Full rest. Come back stronger tomorrow.",
+  "Full rest. Phase 2 is the highest training volume in the program — the body needs this day to adapt.",
   [B("Session","Full rest. No structured training.")])
+
 ]}
 
-const W7=p2week("7-8",90,6,"6","7-8",90,50,"5 rounds: 250m SkiErg + 15 Wall Balls (race weight) + 250m Row | Rest 90s","Shuttle Sprints: 5m and 10m back and forth twice × 5 | Rest 30s between, 3min between rounds");
-const W8=p2week("7-8",95,6,"6","7-8",95,52,"EMOM 16min: odd min 12 Wall Balls (race weight), even min 15 Burpee Broad Jumps","Shuttle Sprints: 5m and 10m back and forth twice × 5 | Rest 30s between, 3min between rounds");
-const W9=p2week("8",100,7,"5","7-8",100,55,"4 rounds: 500m Row + 20m Burpee Broad Jump + 40m Farmers Carry (moderate-heavy) | Rest 2min","Shuttle Sprints: 5m and 10m back and forth twice × 5 | Rest 30s between, 3min between rounds + 6×100m strides after");
-const W10=p2week("8",100,7,"5","7-8",100,55,"5 rounds: 250m SkiErg + 15 Wall Balls (race weight) + 250m Row | Rest 75s","Shuttle Sprints: 5m/10m/15m back and forth × 5 | Rest 30s between, 2:30 rest between rounds + strides");
-const W11=p2week("8-9",105,8,"4","7-8",105,60,"EMOM 18min: odd min 14 Wall Balls (race weight), even min 15 Burpee Broad Jumps + 10m sprint","Shuttle Sprints 5m/10m/15m × 5 | Rest 30s, 2min between rounds | Stay fast and crisp each effort");
-const W12=p2week("8-9",110,8,"4","7-8",110,60,"4 rounds: 500m Row + 25m Burpee Broad Jump + 50m Farmers Carry (race weight) | Rest 90s","5 rounds of shuttle sprints — 5m/10m/15m × 5 | Rest 30s between, 3min between rounds");
+// Phase 2 HYROX blocks
+const hx7=[
+  B("A — Sled Push × 5 × 25m | Rest 90s",
+    "~80-85% race weight | Full form maintained through final 10m",
+    "Note how legs feel on reps 4-5 — this is HYROX-specific fatigue adaptation"),
+  B("B — Station Circuit × 5 rounds | Rest 90s",
+    "250m SkiErg → 15 Wall Balls (race weight) → 250m Row",
+    "RPE 7-8 | Record split times for all 5 rounds — consistency is the goal")
+];
+const hx8=[
+  B("A — Sled Push × 5 × 25m | Rest 90s",
+    "~85-90% race weight"),
+  B("B — EMOM 16min",
+    "Odd minutes: 12 Wall Balls at race weight",
+    "Even minutes: 15 Burpee Broad Jumps",
+    "Target: 10s rest minimum at end of each minute — if you can't hold it, drop 1-2 reps")
+];
+const hx9=[
+  B("A — Sled Push × 5 × 25m | Rest 90s",
+    "~90-95% race weight | Approaching race-specific load"),
+  B("B — Circuit × 4 rounds | Rest 2min",
+    "500m Row → 20m Burpee Broad Jump → 40m Farmers Carry (moderate-heavy)",
+    "RPE 7-8 | Record round splits — even pacing across all 4 rounds")
+];
+const hx10=[
+  B("A — Sled Push × 6 × 25m | Rest 75s",
+    "100% race weight | This is now race-specific | Shorter rest begins to build race conditioning"),
+  B("B — Station Circuit × 5 rounds | Rest 75s",
+    "250m SkiErg → 15 Wall Balls (race weight) → 250m Row",
+    "RPE 8 | Compare pace to Week 7 — the improvement will be clear")
+];
+const hx11=[
+  B("A — Sled Push × 6 × 25m | Rest 60s",
+    "100-105% race weight (challenge load) | 60s rest = true metabolic conditioning"),
+  B("B — EMOM 18min",
+    "Odd minutes: 14 Wall Balls at race weight",
+    "Even minutes: 12 Burpee Broad Jumps + 10m sprint",
+    "This EMOM is intentionally demanding — race fitness is built exactly here")
+];
+const hx12=[
+  B("A — Sled Push × 6 × 25m | Rest 60s",
+    "100% race weight | Final Phase 2 sled session — note how much stronger it feels vs Week 7"),
+  B("B — Circuit × 4 rounds | Rest 90s",
+    "500m Row → 25m Burpee Broad Jump → 50m Farmers Carry (race weight)",
+    "RPE 8 | One of the hardest sessions in the program — you have earned being here")
+];
 
-// Phase 2 benchmark: W12 Sun
-W12[6]={title:"Rest + Phase 2 Benchmark",type:"rest",badge:"rest",
-  focus:"Measure your progress. Your numbers should be significantly better than Week 6.",
-  blocks:[B("Phase 2 Benchmark Test",
-    "1. 2km time trial run — compare to Week 6",
-    "2. Max unbroken wall balls at race weight",
-    "3. Sled push 50m at race weight — for time",
-    "4. 1000m row — for time",
-    "5. Broad jumps in 30 sec — compare to Week 6"),
-  B("Then: Full rest")]};
+const ag7="Shuttle Sprints: 5m and 10m back and forth × 5 | Rest 30s between efforts | 3min between rounds";
+const ag9="Shuttle Sprints: 5m and 10m back and forth × 5 | Rest 30s between efforts, 3min between rounds | Then 6×100m strides (85% effort, walk back)";
+const ag11="Shuttle Sprints: 5m, 10m, 15m back and forth × 5 | Rest 30s between, 2min between rounds | Stay crisp on every effort";
 
-// ──────────── PHASE 3: WEEKS 13-16 ────────────
-function p3week(compEx, simEx, easyMin, plyoEx){
+const W7=p2week("7-8",6,3,hx7,45,"7-8",ag7);
+const W8=p2week("8",6,3,hx8,45,"7-8",ag7);
+const W9=p2week("8",7,4,hx9,50,"8",ag9);
+const W10=p2week("8-9",7,4,hx10,50,"8",ag9);
+const W11=p2week("8-9",8,5,hx11,55,"8-9",ag11);
+const W12=p2week("9",8,5,hx12,55,"8-9",ag11);
+
+// W12 Mon — Phase 2 Benchmark
+W12[6]={title:"Phase 2 Benchmark Test",type:"rest",badge:"rest",
+  focus:"Measure your progress. Numbers should be significantly better than Week 6. This data tells you what to push in Phase 3.",
+  blocks:[
+    B("Same 5 tests as Week 6 — do fresh, before training",
+      "1. 2km Time Trial Run — record time",
+      "2. Max unbroken Wall Balls at race weight — record reps",
+      "3. Sled Push 50m at 100% race weight — record time",
+      "4. 1000m Row — record time",
+      "5. Broad Jump — max distance, best of 3 attempts"),
+    B("After testing","Full rest for remainder of the day")]};
+
+// ─── PHASE 3: WEEKS 13–16 — PEAK ATHLETICISM + RACE PREP ────────────────
+// Goal: maximum strength expression, compromised running (the race separator),
+// full race simulations, and peak explosive athleticism.
+
+function p3week(compBlocks, simBlocks, plyoLine){
 return[
-W("Peak Strength + Sled Maintenance","strength","strength",
-  "Heavy split squat with box jumps after — the ultimate HYROX strength/power combo.",
-  [B("Warm-Up (3 rounds, 1min rest)","Side Lunge to Curtsey Lunge — 5 reps/leg","V-Ups — 12 reps","Alternating DB Row — 10 reps/arm"),
-   B("Strength — Giant Set (4 rounds, 2min rest)","Back Rack RFE Split Squat — 5 reps/leg (heavy, full control)","RFE Split Squat Box Jumps — 5 reps/leg (explosive)"),
-   B("Sled Push Maintenance","Sled Push @ 100% race weight: 4×25m | Rest 2min | Full recovery — maintain power output"),
-   B("Accessories (3-4 rounds, 45s work / 30s rest)","DB Bench Press — 15 reps","Lat Pulldown — 15 reps","Leg Extension — 15 reps")]),
 
-W("Compromised Running (Signature Session)","run","sim",
-  "Run fast on dead legs. This is the #1 skill that separates good HYROX athletes from great ones.",
-  [B("Warm-Up","12-15min easy jog + full dynamic mobility + station activation reps"),
-   B("Main Set",compEx),
-   B("Cool-Down","10min easy jog/walk + full mobility flow")]),
+// 0: Tue — PEAK LOWER BODY
+W("Peak Strength — Lower Body","strength","strength",
+  "Heaviest lower body session in the program. Box jumps immediately after heavy split squat = peak power expression.",
+  [B("Warm-Up — 3 rounds",
+      "Side Lunge to Curtsey Lunge — 5/leg",
+      "V-Ups — 12 reps",
+      "Alternating DB Row — 10/arm"),
+   B("A — Giant Set × 4 | 2min rest | 3 movements consecutive, no rest within",
+      "Back Rack RFE Split Squat — 5/leg (heaviest of the program — full control, no bounce)",
+      "RFE Split Squat Box Jumps — 5/leg (same position, turn it into an explosive jump)",
+      "Depth Drop to Broad Jump — 2 reps (step off box, absorb landing, immediately broad jump — full power)"),
+   B("B — Sled Push Maintenance × 4 × 25m | Full 2min recovery",
+      "100% race weight | Power — not conditioning | Every rep: maximal force output"),
+   B("C — 3-4 rounds | 45s work / 30s rest",
+      "DB Bench Press — 15 reps",
+      "Lat Pulldown — 15 reps",
+      "Leg Extension — 15 reps")]),
 
-W("Posterior Chain Giant Set + Upper Pull","strength","strength",
-  "Maximum hip power and full-body explosiveness. The peak of your strength development.",
-  [B("Warm-Up (3 rounds, 1min rest)","Hip Bridge Long Lever Marches — 8 reps/leg","RDL to Row — 10 reps/leg","Straight Arm Lat Pulls — 10 reps"),
-   B("Strength — Giant Set (4 rounds, 2min rest)","Halting Deadlift — 5 reps (heavy, no ground contact — pause at mid-shin)","Banded Kettlebell Swings — 8 reps (add band for accommodating resistance)","Depth Jump to Double Broad Jump — 2 reps (full expression of power)"),
-   B("Upper Pull Maintenance","Pull-Up / Heavy Row — 3×6 @ RPE6-7 | Rest 90s","Push Press — 3×6 @ RPE6-7 | Rest 90s","Farmers Carry @ race weight — 3×100m unbroken if possible | Rest 90s"),
-   B("Accessories 1 (4 rounds, 90s rest)","Hamstring Curl — 15 reps","Alternating Floor Press — 15 reps/arm","High-to-Low Oblique Rotation — 15 reps/side"),
-   B("Accessories 2 (4 rounds, 90s rest)","Incline DB Biceps Curl — 15 reps","Rope Pushdown — 15 reps"),
-   B("Cardio (optional)","Any machine — 20min moderate intensity (row/ski/bike)")]),
+// 1: Wed — COMPROMISED RUNNING (THE SEPARATOR)
+W("Compromised Running — Race Separator","run","sim",
+  "Run fast on dead legs. This is the single skill that separates good HYROX athletes from great ones. This session is sacred.",
+  [B("Warm-Up",
+      "12-15min easy jog (Zone 2)",
+      "Full dynamic mobility: leg swings, hip circles, arm circles",
+      "4×20m activation strides + 2 light reps at each station being used"),
+   ...compBlocks,
+   B("Cool-Down",
+      "10min easy jog/walk — don't stop immediately",
+      "Full mobility flow: hip flexors, quads, calves, thoracic — minimum 10min | This is mandatory")]),
 
+// 2: Thu — POSTERIOR CHAIN GIANT SET
+W("Posterior Chain — Giant Set & Peak Power","strength","strength",
+  "The most demanding posterior chain session in the program. Halting DL + banded swings + depth jump = full power chain at peak.",
+  [B("Warm-Up — 3 rounds",
+      "Hip Bridge Long Lever Marches — 8/leg (slow, feel each rep)",
+      "RDL to Row — 10/leg (single-leg, hold the hinge position)",
+      "Straight Arm Lat Pulls — 10 reps"),
+   B("A — Giant Set × 4 | 2-3min rest | All 3 movements consecutive",
+      "Halting Deadlift — 5 reps (heavy: stop dead at mid-shin, hold 2s, drive — no momentum)",
+      "Banded KB Swings — 8 reps (band around hips for accommodating resistance — max snap at top)",
+      "Depth Jump to Double Broad Jump — 2 reps (step off box, absorb, jump, land, jump again — full expression)"),
+   B("B — Upper Pull Maintenance × 3 | 90s rest",
+      "Pull-Up or Heavy Row — 6 reps @ RPE 6-7 (maintenance — controlled, not grinding)",
+      "Push Press — 6 reps @ RPE 6-7",
+      "Farmers Carry @ race weight — 100m unbroken if possible"),
+   B("C — Accessories × 4 | 90s rest",
+      "Hamstring Curl — 15 reps",
+      "Alternating Floor Press — 15/arm",
+      "High-to-Low Oblique Rotation — 15/side"),
+   B("D — 4 × 15 | 60s rest",
+      "Incline DB Biceps Curl — 15 reps",
+      "Rope Pushdown — 15 reps"),
+   B("Optional",
+      "Any machine — 20min moderate Zone 2 | Optional but recommended")]),
+
+// 3: Fri — RACE SIMULATION
 W("Race Simulation","sim","sim",
-  "Rehearse the race. Your legs learn what it means to run after every station.",
-  [B("Warm-Up","10-15min easy jog + dynamic mobility"),
-   B("Main Set",simEx),
-   B("Cool-Down","10min easy walk/jog + full mobility flow")]),
+  "Rehearse the race. Your body is learning what the full event feels like — every system, every transition.",
+  [B("Warm-Up",
+      "15min easy jog + full dynamic mobility",
+      "Activation: 2 reps of each station at light weight — technique wake-up only"),
+   ...simBlocks,
+   B("Cool-Down",
+      "10-15min easy jog/walk",
+      "Full body mobility — minimum 15min | Mandatory after any simulation")]),
 
-W("Intensive Plyometrics + Sprint + Hip Stability","athlete","athlete",
-  "Peak explosive athleticism. Reactive, coordinated, and powerful — your best athletic self.",
-  [B("Warm-Up — Intensive Plyometrics (3 rounds)","Intensive Pogos — 3×15 reps","Tuck Jumps — 3×10 reps","Broad Jumps — 3×5 reps"),
-   B("Push Prep (3 rounds)","Plyometric Bench Push-Ups — 6 reps","Medicine Ball Chest Pass — 8 reps","Banded Pull Apart — 10 reps"),
-   B("Speed Plyometrics (3 rounds)",plyoEx),
-   B("Conditioning (5 rounds, 3min rest)","Shuttle Sprints: 5m and 10m back and forth twice × 5 | Rest 30s between efforts"),
-   B("Hip Stability (3 rounds, 60s rest)","Copenhagen Raises — 12-15 reps","45° Hip Flexor Cable — 12 reps/side","Banded Clam Shells — 12 reps/side"),
-   B("Sled Pull Maintenance","Sled Pull @ 100% race weight: 4×25m | Rest 2min")]),
+// 4: Sat — PEAK PLYOMETRICS + SPRINT
+W("Peak Athleticism — Plyometrics, Speed & Stability","athlete","athlete",
+  "Maximum explosive output. By Phase 3 you are the most athletic version of yourself — express it.",
+  [B("Warm-Up — Intensive Plyometrics × 3 rounds",
+      "Intensive Pogos — 15 reps (maximal stiffness, fast contact)",
+      "Tuck Jumps — 10 reps (max height, knees to chest)",
+      "Broad Jumps — 5 reps (max distance, full extension)"),
+   B("A — Push Prep × 3 rounds",
+      "Plyometric Bench Push-Ups — 6 reps (maximal height off bar)",
+      "Medicine Ball Chest Pass — 8 reps",
+      "Banded Pull-Aparts — 10 reps"),
+   B("B — Speed Plyometrics × 3 rounds",
+      plyoLine),
+   B("C — Sprint Conditioning × 5 rounds | 3min rest between rounds",
+      "Shuttle Sprints: 5m and 10m back and forth twice | Rest 30s between efforts | 5 efforts per round",
+      "Every effort: maximal acceleration — speed, not conditioning, is the goal here"),
+   B("D — Hip Stability Circuit × 3 | 60s rest",
+      "Copenhagen Raises — 12-15 reps",
+      "45° Hip Flexor Cable — 12/side",
+      "Banded Clam Shells — 12/side"),
+   B("E — Sled Pull Maintenance × 4 × 25m | Full 2min recovery",
+      "100% race weight | Full recovery between reps — this is power, not cardio")]),
 
+// 5: Sun — FULL RECOVERY (mandatory in Phase 3)
 W("Mobility & Recovery","mobility","mobility",
-  "Protect this day. The volume is high in Phase 3 — recovery is the training.",
-  [B("Full Mobility Flow (30-40min)","Couch Stretch — 60-90s/side","90/90 Hip Switches — 10 reps","Deep Goblet Squat Hold — 2min","Ankle Dorsiflexion — 2×10/side","Open Book Rotations — 8/side","Thread the Needle — 8/side","Shoulder Dislocates — 15 reps","Foam Roll everything — 1min each area"),
-   B("Light movement only — protect this day","This week's volume is high. Do not add extra training here.")]),
+  "Phase 3 is the hardest training block. This day is not optional — your body is adapting every time you rest.",
+  [B("Full Mobility Flow — 35-45min",
+      "Couch Stretch — 90s/side (quads + hip flexors)",
+      "90/90 Hip Switches — 10 reps (hip internal + external rotation)",
+      "Deep Goblet Squat Hold — 2min (ankle + hip mobility)",
+      "Ankle Dorsiflexion Wall Drill — 2×10/side",
+      "Open Book Rotations — 8/side (thoracic rotation)",
+      "Thread the Needle — 8/side",
+      "Banded Shoulder Dislocates — 15 reps",
+      "Foam Roll: quads, glutes, calves, lats, upper back — 90s each area"),
+   B("Light aerobic — optional only",
+      "20min easy walk or bike at Zone 1 | Absolute maximum today — do not train")]),
 
+// 6: Mon — REST
 W("Rest Day","rest","rest",
-  "Full rest. Your body is building. Let it.",
+  "Full rest. The simulation and giant sets are heavy demands — let the body respond.",
   [B("Session","Full rest. No structured training.")])
+
 ]}
 
-const W13=p3week(
-  "4 rounds: 400m run @ Race Pace + 25m Sled Push (100% race weight) + 400m run @ Race Pace | Rest 2min between rounds",
-  "Half-HYROX: Run 1km + SkiErg 1000m → Run 1km + Sled Push 50m → Run 1km + Sled Pull 50m → Run 1km + Burpee Broad Jump 80m | All runs @ Race Pace",
-  50,
-  "Side Jump on Hurdle — 3-5 reps/side | Linear Hops — 6-8 reps/leg"
-);
-const W14=p3week(
-  "5 rounds: 500m run @ Race Pace + 50 Wall Balls (race weight) + 500m run @ Race Pace | Rest 2min",
-  "Back-Half Simulation: Run 1km + Row 1000m → Run 1km + Farmers Carry 200m → Run 1km + Sandbag Lunges 100m → Run 1km + 100 Wall Balls → Run 1km | All race weight",
-  50,
-  "Pogos (intensive) — 15 reps | Side Jump on Hurdle — 3-5/side | Linear Hops — 8 reps/leg"
-);
-const W15=p3week(
-  "4 rounds: 600m run @ Race Pace + 50m Sled Pull (race weight) + 600m run @ Race Pace | Rest 2-3min",
-  "Station Gauntlet: All 8 stations back-to-back at full race weights/distances, only 200m easy jog between each (no full 1km runs). Tests pure station-to-station fatigue.",
-  45,
-  "Pogos — 15 reps | Side Jump on Hurdle — 5/side | Linear Hops — 8/leg"
-);
-const W16=p3week(
-  "6 rounds: 400m run @ Race Pace + 100m Farmers Carry (race weight) + 400m run @ Race Pace | Rest 90s",
-  "FULL HYROX SIMULATION #1: 8×1km + all 8 stations @ full race weights, correct order, race-day transitions. RECORD EVERY SPLIT.",
-  45,
-  "Intensive Pogos — 15 reps | Tuck Jumps — 10 reps | Broad Jumps — 5 reps"
-);
+const comp13=[B("Main Set — 4 rounds | Rest 2min between rounds",
+  "400m Run @ Race Pace → 25m Sled Push (100% race weight) → 400m Run @ Race Pace",
+  "Target: second 400m should be ≥85% of first — don't collapse under the sled",
+  "Record both run splits per round — the gap tells you what to target in Week 16")];
 
-// ──────────── PHASE 4: WEEKS 17-19 ────────────
+const comp14=[B("Main Set — 5 rounds | Rest 2min between rounds",
+  "500m Run @ Race Pace → 50 Wall Balls (race weight) → 500m Run @ Race Pace",
+  "Wall balls affect breathing deeply — the second 500m is the real test",
+  "Don't chase the first 500m — you'll pay in reps 3+ of wall balls")];
+
+const comp15=[B("Main Set — 4 rounds | Rest 2-3min between rounds",
+  "600m Run @ Race Pace → 50m Sled Pull (100% race weight) → 600m Run @ Race Pace",
+  "Longest compromised intervals in the program — don't panic on the second 600m",
+  "Sled pull grip will fatigue — pace the pull so you can run out immediately")];
+
+const comp16=[B("Main Set — 6 rounds | Rest 90s between rounds",
+  "400m Run @ Race Pace → 100m Farmers Carry (race weight) → 400m Run @ Race Pace",
+  "Shortest rest in the series — carry forces you to breathe hard. The second 400m IS race day.",
+  "Stay tall on the carry — collapsing posture costs seconds on the run")];
+
+const sim13=[B("Half-HYROX — First 4 Stations",
+  "1km Run → SkiErg 1000m → 1km Run → Sled Push 50m (100% race weight) → 1km Run → Sled Pull 50m → 1km Run → Burpee Broad Jump 80m",
+  "All runs at race pace | Full race weights | Record every split")];
+
+const sim14=[B("Half-HYROX — Second 4 Stations",
+  "1km Run → Row 1000m → 1km Run → Farmers Carry 200m (race weight) → 1km Run → Sandbag Lunges 100m → 1km Run → Wall Balls 100 reps → 1km Run",
+  "All runs at race pace | Full race weights | Record every split")];
+
+const sim15=[B("Station Gauntlet — All 8 Stations",
+  "All 8 stations at full race weights/distances, back-to-back | Only 200m easy jog between each station (not 1km)",
+  "Tests pure station-to-station fatigue tolerance | Pacing each station is the training goal",
+  "Record time on every station — this reveals your weakest links")];
+
+const sim16=[B("FULL HYROX SIMULATION #1 — Race Day Conditions",
+  "8×1km runs + all 8 stations at full race weights | Correct order | Race-day transitions",
+  "Warm up like it's race day: 15min easy + dynamic mobility + activation strides",
+  "RECORD EVERY SPLIT — runs and stations. This is your current race-day projection.")];
+
+const W13=p3week(comp13,sim13,"Side Jump on Hurdle — 3-5/side | Linear Lateral Hops — 6-8/leg");
+const W14=p3week(comp14,sim14,"Intensive Pogos → Side Jump on Hurdle — 3-5/side | Linear Hops — 8/leg");
+const W15=p3week(comp15,sim15,"Side Jump on Hurdle — 5/side | Linear Hops — 8/leg | Reactive Drop Jump — 3 reps");
+const W16=p3week(comp16,sim16,"Full Plyo: Intensive Pogos 15 reps | Tuck Jumps 10 reps | Broad Jumps 5 reps (maximal output)");
+
+// W16 Mon — Phase 3 Benchmark
+W16[6]={title:"Phase 3 Benchmark Test",type:"rest",badge:"rest",
+  focus:"Final benchmark before taper. You have 3 weeks left. These numbers confirm you're ready.",
+  blocks:[
+    B("Same 5 tests — do fresh before any training",
+      "1. 2km Time Trial Run",
+      "2. Max unbroken Wall Balls (race weight)",
+      "3. Sled Push 50m at 100% race weight — for time",
+      "4. 1000m Row — for time",
+      "5. Broad Jump — max distance, best of 3"),
+    B("After testing","Full rest for the remainder of the day")]};
+
+// ─── PHASE 4: WEEKS 17–19 — TAPER + RACE WEEK ───────────────────────────
+
 const W17=[
-W("Moderate Strength + Shoulder Stability","strength","strength",
-  "Maintain strength without accumulating fatigue. Clean reps, no grinding.",
-  [B("Warm-Up","5-8min Daily Short Warm-Up"),
-   B("Strength (3 rounds, 2min rest)","Back Rack RFE Split Squat — 3×5/leg @ RPE7 (maintenance, no new PRs)","Deadlift — 3×5 @ RPE7 | Rest 2-3min","No heavy singles — controlled reps only"),
-   B("Shoulder Stability (3 rounds, 90s rest)","Alternating Arnold Press — 12 reps/arm","Drop and Catch Side Raises — 12-15 reps","Rear Delt Flies (Drop and Catch) — 12-15 reps")]),
+W("Moderate Strength — Maintenance Only","strength","strength",
+  "Maintain neural freshness — not new fitness. Clean reps at moderate load. No grinding, no PRs.",
+  [B("Warm-Up","8min easy movement + full dynamic mobility"),
+   B("Strength — 3 rounds | 2min rest",
+      "Back Rack RFE Split Squat — 3×5/leg @ RPE 7 (maintenance — leave 2 reps in the tank)",
+      "Deadlift — 3×5 @ RPE 7 | Rest 2-3min | Controlled and clean",
+      "No heavy singles. No grinding. This is rehearsal, not accumulation."),
+   B("Shoulder Stability — 3 rounds | 90s rest",
+      "Alternating Arnold Press — 12/arm",
+      "Drop-and-Catch Side Raises — 12-15 reps",
+      "Rear Delt Flies (Drop-and-Catch) — 12-15 reps")]),
 
 W("Compromised Running — Final Hard Session","run","sim",
-  "This is your last hard running session before taper. Make it count — then trust the rest.",
-  [B("Warm-Up","12-15min easy jog + dynamic mobility"),
-   B("Main Set","4 rounds: 500m run @ Race Pace + 40m Sled Push or 50 Wall Balls (alternate, race weight) + 500m run @ Race Pace | Rest 2min | Sharpening, not building"),
-   B("Cool-Down","10min easy jog + mobility")]),
+  "Last high-intensity running session before taper begins. Make every rep count — then trust the rest completely.",
+  [B("Warm-Up","12-15min easy jog + full dynamic mobility"),
+   B("Main Set — 4 rounds | Rest 2min",
+      "500m Run @ Race Pace → 40m Sled Push OR 50 Wall Balls (alternate each round) → 500m Run @ Race Pace",
+      "Race weight on all stations | Sharpening, not building — stay controlled",
+      "Record split times — compare to Week 13. The improvement should be significant."),
+   B("Cool-Down","10min easy jog + full mobility")]),
 
-W("Moderate Upper/Pull + Forward Foot Split","strength","strength",
-  "Last dose of upper body stimulus and rotational control before volume drops.",
-  [B("Warm-Up","5-8min Daily Short Warm-Up"),
-   B("Strength (3 rounds, 90s rest)","Pull-Up / Row — 3×6 @ RPE6-7","Push Press — 3×6 @ RPE6-7","Farmers Carry @ race weight — 2×100m | Rest 90s"),
-   B("Accessories (3 rounds, 90s rest)","FFE Split Squat with Rotation — 8 reps/leg (forward foot elevated + torso rotation)","Leg Elevated Push-Ups — 12-15 reps","Single-Arm Cable Row (high position) — 15 reps/side")]),
+W("Moderate Upper Body + Carry Maintenance","strength","strength",
+  "Last upper body stimulus before taper. Rotation work keeps coordination sharp for race day.",
+  [B("Warm-Up","8min easy movement"),
+   B("Strength — 3 rounds | 90s rest",
+      "Pull-Up or Row — 3×6 @ RPE 6-7",
+      "Push Press — 3×6 @ RPE 6-7",
+      "Farmers Carry @ race weight — 2×100m | Rest 90s"),
+   B("Accessories — 3 rounds | 90s rest",
+      "FFE Split Squat with Rotation — 8/leg (forward foot elevated, add trunk rotation)",
+      "Leg Elevated Push-Ups — 12-15 reps",
+      "Single-Arm Cable Row (high position) — 15/side")]),
 
-W("Easy Run + Mobility","run","run",
-  "Aerobic maintenance at easy effort. Keep the engine warm without adding fatigue.",
-  [B("Run","Easy 40min Z2"),
-   B("Mobility","Full Mobility Flow, 30min")]),
+W("Easy Run — Aerobic Maintenance","run","run",
+  "Keep the aerobic engine warm without adding fatigue. Conversational pace only — if you're breathing hard, slow down.",
+  [B("Run","40min easy Zone 2 — fully conversational, no structure","This is active recovery disguised as a run"),
+   B("Mobility","Full Mobility Flow — 25-30min after run")]),
 
-W("FULL HYROX SIMULATION #2","sim","race",
-  "Treat this like race day. Warm up properly, pace smart, record everything. Compare to Week 16.",
-  [B("Warm-Up","15min easy jog + full dynamic mobility + activation reps — treat this like a real race warm-up"),
-   B("Main Set","Complete 8×1km + all 8 stations @ full race weights, correct order, race-day-style transitions. RECORD EVERY SPLIT and compare directly to Week 16 numbers."),
+W("FULL HYROX SIMULATION #2 — Final Benchmark","sim","race",
+  "Treat this like race day. Warm up properly, pace smart from the start, record every split. Compare directly to Week 16.",
+  [B("Race-Day Warm-Up Protocol",
+      "15min easy jog + full dynamic mobility + activation strides",
+      "Treat this exactly as race morning — same breakfast timing if possible"),
+   B("Main Set — Full HYROX",
+      "8×1km runs + all 8 stations at full race weights | Correct order | Race-day transitions",
+      "RECORD EVERY SPLIT — runs and stations",
+      "Compare directly to Week 16 simulation — improvement here is your race-day confidence"),
    B("Cool-Down","10-15min easy walk/jog + full mobility flow")]),
 
-W("Mobility & Recovery","mobility","mobility",
-  "You just did a full simulation. Prioritize recovery above everything.",
-  [B("Session","Full Mobility Flow, 30-40min. Light movement only."),
-   B("Notes","You just did a full sim — this recovery day is mandatory, not optional.")]),
+W("Recovery — Mandatory Post-Sim","mobility","mobility",
+  "You just did a full race simulation. The only training today is recovery.",
+  [B("Session","Full Mobility Flow — 30-40min | Light movement only"),
+   B("Note","Simulation fatigue takes 48-72hrs to clear. This recovery day is not optional.")]),
 
-W("Rest Day","rest","rest",
-  "Full rest.",
+W("Rest Day","rest","rest","Full rest.",
   [B("Session","Full rest.")])
 ];
 
 const W18=[
-W("Light Strength — Sled Feel","strength","strength",
-  "Keep the neural pathways fresh. Light load, perfect technique, no fatigue accumulation.",
-  [B("Warm-Up","5-8min Daily Short Warm-Up"),
-   B("Strength (light)","Back Squat — 2×5 @ RPE5-6 | Rest 90s","Deadlift — 2×5 @ RPE5-6 | Rest 90s"),
-   B("Station Feel","Sled Push @ race weight: 2×25m, easy effort — just for feel | Rest 90s","Sled Pull @ race weight: 2×25m, easy effort | Rest 90s")]),
+W("Light Strength — Neural Freshness","strength","strength",
+  "Keep the nervous system primed without accumulating fatigue. Light loads, perfect technique, no effort above RPE 6.",
+  [B("Warm-Up","8min easy movement"),
+   B("Strength — light",
+      "Back Squat — 2×5 @ RPE 5-6 | Rest 90s",
+      "Deadlift — 2×5 @ RPE 5-6 | Rest 90s"),
+   B("Station Feel — technique runs only",
+      "Sled Push @ race weight — 2×25m | Easy effort, for feel not fitness",
+      "Sled Pull @ race weight — 2×25m | Easy effort | Rest 90s between runs")]),
 
-W("Short Sharpening Intervals","run","run",
-  "Stay sharp without accumulating fatigue. You should finish feeling crisp, not wrecked.",
+W("Short Sharpening Run","run","run",
+  "Stay sharp without accumulating fatigue. Finish feeling crisp, not tired. Quality over quantity.",
   [B("Warm-Up","10min easy jog + dynamic mobility"),
-   B("Main Set","4×3min @ Race Pace | 2min easy jog recovery | Finish feeling sharp"),
-   B("Cool-Down","5-10min easy jog")]),
+   B("Main Set — 4 × 3min @ Race Pace | 2min easy jog recovery","Finish feeling like you could do 2 more — that's correct taper running"),
+   B("Cool-Down","8min easy jog + mobility")]),
 
-W("Light Strength / Mobility Circuit","mobility","mobility",
-  "Mobility with just enough movement to stay loose. This is rest disguised as training.",
-  [B("Session","20min bodyweight circuit: squats, push-ups, light rows, plank — easy effort, mobility-focused")]),
+W("Mobility + Light Movement","mobility","mobility",
+  "Mobility with just enough movement to stay loose. This is rest with a warm-up.",
+  [B("Session","20min easy bodyweight circuit: air squats, push-ups, light rows, plank — easy effort throughout"),
+   B("Mobility","Full Mobility Flow — 25min | Priority today")]),
 
-W("Easy Run + Mobility","run","run",
-  "Last easy run before race week. Keep it conversational and enjoy the process.",
-  [B("Run","Easy 30min Z2"),
-   B("Mobility","Full Mobility Flow, 20-30min")]),
+W("Easy Run — Final Long Easy","run","run",
+  "Last Zone 2 run before race week. Keep it fully conversational. Enjoy the process.",
+  [B("Run","30min easy Zone 2 — conversational | No structure, no watch staring"),
+   B("Mobility","Full Mobility Flow — 20min after run")]),
 
-W("Technique Run-Through","hybrid","hybrid",
-  "Rehearse all 8 stations at 50-60% load. This is about movement quality, not intensity.",
-  [B("Session","All 8 stations, light weight (50-60% race load) — rehearsing movement patterns and transitions. No 1km runs — light jog/walk only. 30-40min total, very low intensity.")]),
+W("Technique Run-Through — All 8 Stations","hybrid","hybrid",
+  "Rehearse transitions and movement patterns at 50-60% load. This is about motor patterns — not fitness.",
+  [B("Session",
+      "All 8 stations at 50-60% race load — technique and transition rehearsal only",
+      "No 1km runs — 200m easy jog/walk between stations",
+      "30-40min total | Very low intensity | If anything feels off, flag it now")]),
 
-W("Rest / Optional Light Walk","rest","rest",
-  "Rest and visualize race day. Walk through your plan mentally.",
-  [B("Session","Complete rest, or a 20min easy walk if restless. No structured training.")]),
+W("Rest — Visualize Race Day","rest","rest",
+  "Your training is done. Today is about mental preparation.",
+  [B("Session","Complete rest — 20min easy walk if restless. No structured training."),
+   B("Visualization","Walk through your full race plan mentally: pacing, transitions, tough moments, finish")]),
 
-W("Rest Day","rest","rest",
-  "Full rest.",
+W("Rest Day","rest","rest","Full rest.",
   [B("Session","Full rest.")])
 ];
 
-// WEEK 19 — RACE WEEK
 const W19=[
-W("Easy Shakeout + Mobility (Nov 9)","run","run",
-  "Keep the legs awake. Sleep becomes your #1 training tool from today.",
-  [B("Run","Very light 20min easy jog"),
-   B("Mobility","Full Mobility Flow, 20-30min"),
-   B("Priority","Aim for 8+ hours sleep every night this week. Non-negotiable.")]),
+W("Race Week — Easy Shakeout (Nov 9)","run","run",
+  "Keep the legs awake. Sleep is your #1 training tool this week — 8+ hours every night.",
+  [B("Run","20min very easy jog — fully conversational"),
+   B("Mobility","Full Mobility Flow — 20-25min"),
+   B("Priority","8+ hours sleep every night this week. Non-negotiable.")]),
 
-W("Short Activation (Nov 10)","hybrid","hybrid",
-  "Stay loose, stay sharp. 10 wall balls and you're done — resist the urge to do more.",
-  [B("Session","10min easy jog","4×20m relaxed strides","10 Wall Balls (light)","10 Burpee Broad Jumps (easy pace)","Keep everything light — staying loose, not building fitness.")]),
+W("Race Week — Short Activation (Nov 10)","hybrid","hybrid",
+  "Stay loose and sharp. 10 wall balls and you're done — resist every urge to do more.",
+  [B("Session",
+      "10min easy jog",
+      "4×20m relaxed strides",
+      "10 Wall Balls (light weight)",
+      "10 Burpee Broad Jumps (easy pace)",
+      "Done. Keep everything light — staying loose, not building fitness.")]),
 
-W("Full Rest (Nov 11)","rest","rest",
-  "No training. Start loading carbs and hydrating from today.",
-  [B("Session","Complete rest. No training."),
-   B("Nutrition","Increase carbohydrate intake and hydration from today."),
-   B("Prep","Pack race bag: shoes, kit, race belt/bib holder, fuel, water bottle, change of clothes.")]),
+W("Race Week — Full Rest (Nov 11)","rest","rest",
+  "No training. Start carb-loading and hyper-hydrating from today.",
+  [B("Session","Complete rest. No training whatsoever."),
+   B("Nutrition","Increase carbohydrate intake today and tomorrow | Hydrate steadily — not all at once"),
+   B("Prep","Pack race bag: shoes, kit, race belt, gels, water, change of clothes")]),
 
-W("Shakeout + Travel (Nov 12)","run","run",
-  "Stay mobile during travel. Hydration is your job today.",
-  [B("Session","15min very easy jog","Light full-body mobility flow"),
-   B("Travel","Travel to Cairo if needed — stay hydrated and mobile, avoid long sedentary stretches.")]),
+W("Race Week — Shakeout + Travel (Nov 12)","run","run",
+  "Stay mobile during travel. Hydration is your only job today.",
+  [B("Session","15min very easy jog + light mobility"),
+   B("Travel","Travel to Cairo if needed — stay hydrated, avoid long sedentary stretches on the plane/car")]),
 
-W("Rest + Final Prep (Nov 13)","rest","rest",
-  "Everything is done. Trust your training. Sleep early.",
+W("Race Week — Rest + Final Prep (Nov 13)","rest","rest",
+  "Everything is done. Your fitness is locked in. Trust your training. Sleep early.",
   [B("Session","Full rest. No training."),
-   B("Checklist","Walk the venue/course area if possible","Early sleep tonight","Lay out full race kit, bib, shoes, fuel/gels, water bottle the night before")]),
+   B("Race-Day Checklist",
+      "Walk the venue/warm-up area if possible",
+      "Lay out full race kit tonight: shoes, bib, race belt, fuel, water bottle",
+      "Eat your normal pre-race dinner — nothing new",
+      "Sleep by 9:30-10pm")]),
 
-W("RACE DAY — Nov 14/15","race","race",
-  "This is what 19 weeks of work was for. Execute your plan. You are ready.",
-  [B("Race Morning","Eat familiar carb breakfast 2.5-3hrs before wave","Arrive early — first Cairo HYROX event, expect queues","Warm-up: 10min easy jog + dynamic mobility + strides + light activation","Hydrate steadily — no chugging before the gun"),
-   B("Official Station Order","1. SkiErg 1000m","2. Sled Push 50m (152kg M / 102kg W)","3. Sled Pull 50m (103kg M / 78kg W)","4. Burpee Broad Jump 80m","5. Rowing 1000m","6. Farmers Carry 200m (2×24kg M / 2×16kg W)","7. Sandbag Lunges 100m (20kg M / 10kg W)","8. Wall Balls 100 reps (9kg M / 6kg W)"),
-   B("Race Strategy","Runs 1-3: Controlled, slightly conservative — trained pace not faster","Sled Push & Pull: Broken into manageable efforts, not one all-out crash","Runs 4-6: WHERE THE RACE IS WON — hold pace as fatigue builds","Wall Balls: Break early by plan — sets of 15-20, don't wait for failure","Final 1km: EMPTY THE TANK — the only time to go all-out")]),
+W("RACE DAY — Nov 14","race","race",
+  "19 weeks of work comes down to this. Execute your plan. You are ready.",
+  [B("Race Morning",
+      "Familiar carb breakfast 2.5-3hrs before wave start",
+      "Arrive early — first Cairo HYROX, expect registration queues",
+      "Warm-up: 10min easy jog + dynamic mobility + 4 strides + light station activation",
+      "Hydrate steadily — no chugging before the gun"),
+   B("Official Station Order",
+      "1. SkiErg 1000m",
+      "2. Sled Push 50m (152kg M / 102kg W)",
+      "3. Sled Pull 50m (103kg M / 78kg W)",
+      "4. Burpee Broad Jump 80m",
+      "5. Rowing 1000m",
+      "6. Farmers Carry 200m (2×24kg M / 2×16kg W)",
+      "7. Sandbag Lunges 100m (20kg M / 10kg W)",
+      "8. Wall Balls 100 reps (9kg M / 6kg W)"),
+   B("Race Strategy",
+      "Runs 1-3: Slightly conservative — trained pace, not faster. You have 5 more runs.",
+      "Sled Push & Pull: Broken efforts, no single all-out crash into the wall",
+      "Runs 4-6: WHERE THE RACE IS WON — hold pace while fatigue accumulates",
+      "Farmers Carry: Pre-planned breaks — don't grip until failure",
+      "Wall Balls: Break by plan (sets of 15-20), not by failure",
+      "Final 1km: Empty the tank — the only time to go truly all-out")]),
 
-W("Recovery & Celebration","rest","rest",
-  "YOU DID IT. First ever HYROX Cairo. Rest, celebrate, and be proud.",
+W("Recovery + Celebration","rest","rest",
+  "YOU DID IT. First ever HYROX Cairo. Rest, celebrate, and be proud of what you built.",
   [B("Session","Full rest. Light walking and stretching only."),
-   B("Reflection","You trained for 19 weeks. You showed up. That is the victory.")])
+   B("Reflection","19 weeks. You showed up. You did the work. That is the victory.")])
 ];
 
 const ALL_WEEKS=[W1,W2,W3,W4,W5,W6,W7,W8,W9,W10,W11,W12,W13,W14,W15,W16,W17,W18,W19];
